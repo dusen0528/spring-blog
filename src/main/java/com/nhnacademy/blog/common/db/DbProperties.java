@@ -7,7 +7,7 @@ public class DbProperties {
      */
 
     //기본 BEAN_NAME을 설정 합니다.
-    public static final String BEAN_NAME="dbProperties";
+    public static final String BEAN_NAME="changeMe";
 
     private final String url;
     private final String username;
