@@ -12,19 +12,19 @@
 
 package com.nhnacademy.blog.common.context;
 
-//TODO#1-8 Context에 접근할 수 있도록 ContextHolder를 Singleton 구현 합니다.
+// TODO#1-9 Context에 접근할 수 있도록 ContextHolder를 싱글톤으로 구현합니다.
 public class ContextHolder {
 
     //ApplicationContext를 초기화 합니다.
-    private static final Context context = new ApplicationContext();
+    private static final Context context = null;
 
     private ContextHolder(){
         //ContextHoder를 new ContextHolder() 시도 한다면 IllegalStateException 예외가 발생할 수 있도록 구현 합니다.
-        throw new IllegalStateException("ContextHolder should not be instantiated");
+
     }
 
     public static synchronized ApplicationContext getApplicationContext() {
-        //Context를 반환 합니다.
-        return (ApplicationContext) context;
+        //ApplicationContext 반환 합니다.
+        return null;
     }
 }

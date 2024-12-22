@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * TODO#2-2 데이터 처리를 직접 수행하고 예외 처리를 통해 데이터베이스 관련 예외를 반환합니다.
+ * TODO#2-2 [README] 데이터 처리를 직접 수행하고 예외 처리를 통해 데이터베이스 관련 예외를 반환합니다.
  */
 @Component
 @Retention(value = RetentionPolicy.RUNTIME)

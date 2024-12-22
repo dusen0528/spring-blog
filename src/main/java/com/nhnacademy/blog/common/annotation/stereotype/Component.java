@@ -7,10 +7,10 @@ import java.lang.annotation.Target;
 
 /**
  * TODO#2-1 @Component
- * 모든 Stereotype의 기본이 되는 Annotation
+ * [README]모든 Stereotype의 기본이 되는 Annotation
  */
-@Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
+@Retention(value = RetentionPolicy.RUNTIME)
 public @interface Component {
     String value() default "";
 }
