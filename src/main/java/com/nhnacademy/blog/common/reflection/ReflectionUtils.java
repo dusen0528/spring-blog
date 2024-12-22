@@ -28,16 +28,17 @@ public class ReflectionUtils {
      */
     @SuppressWarnings("java:S3011")
     public static void setField(Object target, String fieldName, Object value) {
-        /*TODO#5-12 객체의 특정 field에 값을 강제로 할당 합니다.*/
 
+        /**
+         * TODO#5-12 객체의 특정 필드에 값을 강제로 할당합니다.
+         * - 해당 필드의 접근 제한자가 private 또는 final일 수 있습니다.
+         * - field.setAccessible(true)를 사용하여 필드에 접근할 수 있도록 설정합니다.
+         * - field.set() 메서드를 사용하여 target 객체의 필드 값을 value로 설정합니다.
+         * - [참고] https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html
+         * - 예외처리 : ReflectionException 이 발생합니다.
+         */
         Field field = null;
-        try {
-            field = target.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(target, value);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new ReflectionException(e);
-        }
+
     }
 
     /**
@@ -51,10 +52,11 @@ public class ReflectionUtils {
     public static <T>List<ClassWrapper<T>>  classScan(String packageName, Class<T> targetClass) {
         //TODO#5-13 classScan() 구현합니다.
 
-        //Reflections객체를 packageName을 사용해서 초기화 합니다.
-        Reflections reflections = new Reflections(packageName);
-        //targetClass를 구현한 구현체를 Scan 합니다.
-        Set<Class<? extends T>> classes = reflections.getSubTypesOf(targetClass);
+        //Reflections객체를 packageName을 사용해서 생성합니다.
+        Reflections reflections = null;
+
+        //targetClass를 구현한 구현체를 Scan 합니다. , reflections.getSubTypesOf() 메서드를 사용하세요
+        Set<Class<? extends T>> classes = null;
 
         List<ClassWrapper<T>> classWrappers = new ArrayList<>();
         for(Class<? extends T> clazz : classes){
@@ -62,17 +64,14 @@ public class ReflectionUtils {
             // new ClassWrapper(@InitOrder에 설정된 우선순위, class) 초기화 합니다.
             // @InitOrder 존재하지 않다면 1로 초기화 합니다.
 
-            InitOrder initOrder = clazz.getAnnotation(InitOrder.class);
-            int order = Objects.nonNull(initOrder) ? initOrder.value() : 1;
-            try {
-                classWrappers.add(new ClassWrapper(order,clazz));
-            } catch (Exception e) {
-                throw new ReflectionException(e);
-            }
+            InitOrder initOrder = null;
+            int order = 0;
+
         }
 
         //@InitOrder value 기준으로 classWrappers내의 class들을 내림차순 정렬합니다.
-        Collections.sort(classWrappers, (o1, o2)->o1.getOrder()-o2.getOrder());
+
+
         return classWrappers;
     }
 
@@ -87,10 +86,10 @@ public class ReflectionUtils {
     public static List<ClassWrapper> classScanByAnnotated(String packageName, Class<? extends Annotation> annotatedClass) {
         //TODO#5-14 classScanByAnnotated() 구현 합니다.
 
-        //Reflections객체를 packageName을 사용해서 초기화 합니다.
-        Reflections reflections = new Reflections(packageName);
+        //Reflections객체를 packageName을 사용해서 생성합니다.
+        Reflections reflections = null;
 
-        //annotatedClass이 달려있는 class를 스켄 합니다.
+        //annotatedClass <-- anootation이 선언되어 있는 class를 스켄 합니다.
         Set<Class<?>> annotatedClasses = reflections.get(Scanners.TypesAnnotated.with(annotatedClass).asClass());
 
         List<ClassWrapper> classWrappers = new ArrayList<>();
@@ -101,17 +100,13 @@ public class ReflectionUtils {
             // new ClassWrapper(@InitOrder에 설정된 우선순위, class) 초기화 합니다.
             // @InitOrder 존재하지 않다면 1로 초기화 합니다.
 
-            InitOrder initOrder = clazz.getAnnotation(InitOrder.class);
-            int order = Objects.nonNull(initOrder) ? initOrder.value() : 1;
-            try {
-                classWrappers.add(new ClassWrapper(order,clazz));
-            } catch (Exception e) {
-                throw new ReflectionException(e);
-            }
+            InitOrder initOrder = null;
+            int order = 0;
+
         }
 
         //@InitOrder value 기준으로 classWrappers내의 class들을 내림차순 정렬합니다.
-        Collections.sort(classWrappers, (o1, o2)->o1.getOrder()-o2.getOrder());
+
 
         return classWrappers;
     }
@@ -125,18 +120,16 @@ public class ReflectionUtils {
         //TODO#5-15 findFirstConstructor()를 구현 합니다.
 
         //clazz로 부터 생성자 리스트를 구합니다.
-        Constructor<?>[] constructors = clazz.getConstructors();
+        Constructor<?>[] constructors = null;
 
         //constructors >0 면 처음 발견된 생성자를 반환 합니다.
         //constructors==0 이면  ReflectionException이 발생 합니다.
-        if(constructors.length > 0){
-            return (Constructor<T>) constructors[0];
-        }
-        throw new ReflectionException("Constructor not found");
+
+        return null;
     }
 
     /**
-     * 생성자의 parameter에 해당되는 객체를 @Qulifier annotation에 정의된 beanName에 의해서 조회후 Object[] array행태로 반환
+     * 생성자의 parameter에 해당되는 객체를 @Qulifier annotation에 정의된 beanName에 의해서 조회 후 Object[]반환
      * @param context
      * @param constructor
      * @return Object[]
@@ -148,62 +141,61 @@ public class ReflectionUtils {
         Object[] parameters = null;
 
         //생성자의 파라미터 개수가 == 0이면 new Object[0]을 반환합니다.
-        if(constructor.getParameterTypes().length == 0 ){
-            return new Object[0];
-        }
+
         //parameters 배열을 생성자의 파라미터 개수 만큼 배열 크기를 초기화 합니다.
-        parameters = new Object[constructor.getParameterTypes().length];
+        parameters = null;
 
         for (int i=0; i<constructor.getParameterCount(); i++) {
 
-            /** 파라미터의 개수 만큼 순회 하면서 해당 파라미터에 해당되는 Bean을 찾아 Object[] 배열로 반환 합니다.
-             다음과 같은 @Service가 있다고 예를 들어 봅시다.
-             + BlogInfoServiceImpl 생성자에 다음과 같이 파라미터가 존재 합니다.
-                - @Qualifier(JdbcBlogRepository.BEAN_NAME) BlogRepository blogRepository,
-                - @Qualifier(JdbcBlogMemberMappingRepository.BEAN_NAME) BlogMemberMappingRepository blogMemberMappingRepository
-             + BlogRepository blogRepository Application Context에서  @Qualifier(JdbcBlogRepository.BEAN_NAME)의 BeanName('blogInfoService')에 해당하는 객체를 찾아서 주입합니다.
-             + 즉 Object[] 배열에 parameter의 순서에 맞춰 Context로부터 Bean(객체)를 할당 합니다.
-
-             @Service(BlogInfoServiceImpl.BEAN_NAME)
-             public class BlogInfoServiceImpl implements BlogInfoService {
-
-                 public static final String BEAN_NAME = "blogInfoService";
-                 private final BlogRepository blogRepository;
-                 private final BlogMemberMappingRepository blogMemberMappingRepository;
-
-                 public BlogInfoServiceImpl(
-                 @Qualifier(JdbcBlogRepository.BEAN_NAME) BlogRepository blogRepository,
-                 @Qualifier(JdbcBlogMemberMappingRepository.BEAN_NAME) BlogMemberMappingRepository blogMemberMappingRepository
-                 ) {
-                    this.blogRepository = blogRepository;
-                    this.blogMemberMappingRepository = blogMemberMappingRepository;
-                 }
-                 //...
-             }
-
+            /**
+             * 생성자의 파라미터 개수만큼 순회하면서 해당 파라미터에 해당되는 Bean을 찾아 Object[] 배열로 반환합니다.
+             * 다음과 같은 @Service가 있다고 가정해봅시다.
+             *
+             * BlogInfoServiceImpl 생성자에 다음과 같이 파라미터가 존재합니다:
+             * - @Qualifier(JdbcBlogRepository.BEAN_NAME) BlogRepository blogRepository,
+             * - @Qualifier(JdbcBlogMemberMappingRepository.BEAN_NAME) BlogMemberMappingRepository blogMemberMappingRepository
+             *
+             * BlogRepository blogRepository는 Application Context에서 @Qualifier(JdbcBlogRepository.BEAN_NAME)의 BeanName('blogInfoService')에 해당하는 객체를 찾아서 주입합니다.
+             *
+             * 즉, Object[] 배열에 파라미터의 순서에 맞춰 Context로부터 Bean(객체)를 할당합니다.
+             *
+             * 예시:
+             *
+             * @Service(BlogInfoServiceImpl.BEAN_NAME)
+             * public class BlogInfoServiceImpl implements BlogInfoService {
+             *
+             *     public static final String BEAN_NAME = "blogInfoService";
+             *     private final BlogRepository blogRepository;
+             *     private final BlogMemberMappingRepository blogMemberMappingRepository;
+             *
+             *     public BlogInfoServiceImpl(
+             *         @Qualifier(JdbcBlogRepository.BEAN_NAME) BlogRepository blogRepository,
+             *         @Qualifier(JdbcBlogMemberMappingRepository.BEAN_NAME) BlogMemberMappingRepository blogMemberMappingRepository
+             *     ) {
+             *         this.blogRepository = blogRepository;
+             *         this.blogMemberMappingRepository = blogMemberMappingRepository;
+             *     }
+             *     //...
+             * }
              */
-            Parameter parameter = constructor.getParameters()[i];
+
+            Parameter parameter = null;
 
             //@qulifier annotation에 정의된 beanName을 구합니다.
-            Qualifier qualifier = parameter.getAnnotation(Qualifier.class);
+            Qualifier qualifier = null;
 
             // qualifier 가 존재하지 않다면 ReflectionException 발생 합니다.
-            if(Objects.isNull(qualifier)) {
-                throw new ReflectionException(String.format("%s, missing @Qualifier annotation in Constructor:%s", constructor.getName(), parameter.getName()));
-            }
+
             //qualifier로 부터 beanName을 얻습니다.
-            String beanName = qualifier.value();
+            String beanName = null;
 
-            //context에서 @Qulifier(value="{beanName}")에 해당된 객체를 얻습니다.
-            Object bean = context.getBean(beanName);
+            //context에서 @Qulifier(value="{beanName}")에 해당된 Bean(객체)를 얻습니다.
+            Object bean = null;
 
-            //bean이 Context에 존재하지 않다면 BeanNotFoundException이 발생 합니다.
-            if(Objects.isNull(bean)) {
-                throw new BeanNotFoundException(String.format("%s, bean not found", beanName));
-            }
+            //Bean이 Context에 존재하지 않으면 'BeanNotFoundException'이 발생합니다.
 
             //bean(객체)을 순서에 맞춰 parameter[i]로 할당 합니다.
-            parameters[i] = bean;
+
         }
         return parameters;
     }

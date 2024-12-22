@@ -1,6 +1,5 @@
 package com.nhnacademy.blog.common.db;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.nhnacademy.blog.common.annotation.InitOrder;
 import com.nhnacademy.blog.common.annotation.Qualifier;
 import com.nhnacademy.blog.common.annotation.stereotype.Component;
@@ -18,25 +17,25 @@ import java.time.Duration;
      - Component는 Application Context에 의해서 Bean(객체)로 등록 됩니다.
      - Application Context가 관리하는 객체를 Bean이라고 합니다.
 */
-@Component(BlogDataSource.BEAN_NAME )
+
 public class BlogDataSource {
     //TODO#6-2 BEAN_NAME 변경하세요.
-    public static final String BEAN_NAME="dataSource";
+    public static final String BEAN_NAME="changeMe";
 
     private final DbProperties dbProperties;
     private final DataSource dataSource;
 
     public BlogDataSource(
             //todo#6-3 @Qualifier(DbProperties.BEAN_NAME)을 사용하여  DbProperties dbProperties에 Application Context에 등록된 DbProperties.BEAN_NAME 해당되는 Bean을 주입 받습니다.
-            @Qualifier(DbProperties.BEAN_NAME) DbProperties dbProperties
+            DbProperties dbProperties
     ) {
         //TODO#6-4 this.dbProperties를 초기화 합니다.
-        this.dbProperties = dbProperties;
+        this.dbProperties = null;
 
         /*TODO#6-5 dbProperties.isSpy()==true면 createP6SpyDataSource()를 호출 합니다.
            - dbProperties.isSpy()==false면 createDataSource()를 호출 합니다.
          */
-        this.dataSource = dbProperties.isSpy() ? createP6SpyDataSource(createDataSource()) : createDataSource();
+        this.dataSource = null;
     }
 
     private DataSource createDataSource(){
@@ -47,49 +46,20 @@ public class BlogDataSource {
         BasicDataSource basicDataSource = new BasicDataSource();
 
         basicDataSource.setUrl(dbProperties.getUrl());
-        basicDataSource.setUsername(dbProperties.getUsername());
-        basicDataSource.setPassword(dbProperties.getPassword());
+        //.. more
 
-        basicDataSource.setInitialSize(dbProperties.getInitialSize());
-        basicDataSource.setMaxTotal(dbProperties.getMaxTotal());
-        basicDataSource.setMaxIdle(dbProperties.getMaxIdle());
-        basicDataSource.setMinIdle(dbProperties.getMinIdle());
-
-        basicDataSource.setMaxWait(Duration.ofSeconds(dbProperties.getMaxWait()));
-        basicDataSource.setValidationQuery(dbProperties.getValidationQuery());
-        basicDataSource.setTestOnBorrow(dbProperties.isTestOnBorrow());
         return basicDataSource;
     }
 
     private DataSource createP6SpyDataSource(DataSource dataSource){
         //TODO#6-7 dataSource를 이용해서 P6DataSource 객체를 생성 합니다.
-        return new P6DataSource(dataSource);
-    }
-
-    private DataSource createDataSourceByC3p0(DbProperties dbProperties){
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        try {
-            dataSource.setDriverClass("com.mysql.cj.jdbc.Driver"); // MySQL 드라이버 클래스
-        } catch (PropertyVetoException e) {
-            throw new DatabaseException(e);
-        }
-        dataSource.setJdbcUrl(dbProperties.getUrl()); // JDBC URL
-        dataSource.setUser(dbProperties.getUsername()); // 데이터베이스 사용자 이름
-        dataSource.setPassword(dbProperties.getPassword()); // 데이터베이스 비밀번호
-        dataSource.setInitialPoolSize(dbProperties.getInitialSize());
-
-        // 추가 설정
-        dataSource.setMinPoolSize(dbProperties.getMinIdle());
-        dataSource.setMaxPoolSize(dbProperties.getInitialSize());
-        dataSource.setMaxIdleTime(dbProperties.getMaxIdle());
-        dataSource.setTestConnectionOnCheckin(dbProperties.isTestOnBorrow());
-        dataSource.setPreferredTestQuery(dbProperties.getPassword());
-        return dataSource;
+        return null;
     }
 
     public DataSource getDataSource() {
         //TODO#6-8 dataSource를 반환 합니다.
-        return dataSource;
+
+        return null;
     }
 
 }
