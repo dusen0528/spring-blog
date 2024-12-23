@@ -16,385 +16,100 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * JDBC 구현체 BlogRepository 인터페이스
+ * 해당 클래스는 DB와의 연결을 통해 Blog 데이터를 처리하는 기능을 제공합니다.
+ *
+ * @see BlogRepository
+ */
+//TODO#3-5 @Repository 작성하세요.
 @Repository(JdbcBlogRepository.BEAN_NAME)
 public class JdbcBlogRepository implements BlogRepository {
     public static final String BEAN_NAME = "jdbcBlogRepository";
 
     @Override
     public void save(Blog blog) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    insert into blogs 
-                    set
-                        blog_fid=?,
-                        blog_main=?,
-                        blog_name=?,
-                        blog_mb_nickname=?,
-                        blog_description=?,
-                        blog_is_public=?,
-                        created_at=?
-                """;
-
-        try(PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            int index=1;
-            statement.setString(index++,blog.getBlogFid());
-            statement.setBoolean(index++, blog.isBlogMain());
-            statement.setString(index++, blog.getBlogName());
-            statement.setString(index++, blog.getBlogMbNickname());
-            statement.setString(index++, blog.getBlogDescription());
-            statement.setBoolean(index++, blog.getBlogIsPublic());
-            statement.setTimestamp(index++, Timestamp.valueOf(blog.getCreatedAt()));
-            int rows = statement.executeUpdate();
-            if(rows > 0) {
-                try(ResultSet rs = statement.getGeneratedKeys()) {
-                    if(rs.next()) {
-                        long blogId = rs.getLong(1);
-                        ReflectionUtils.setField(blog, "blogId", blogId);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        // TODO#3-6: 이 메소드에서 DB에 새로운 블로그를 저장하는 코드를 작성하세요.
+        // - Connection 객체를 얻고, INSERT SQL 쿼리를 실행하여 새로운 블로그를 DB에 저장합니다.
+        // - SQL에 필요한 파라미터들은 Blog 객체에서 가져옵니다.
+        // - PreparedStatement를 사용하여 SQL 쿼리를 안전하게 실행합니다.
     }
 
     @Override
     public void update(BlogUpdateRequest blogUpdateRequest) {
-
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    update blogs 
-                    set
-                        blog_main=?,
-                        blog_name=?,
-                        blog_mb_nickname=?,
-                        blog_description=?,
-                        updated_at=now()
-                    where 
-                        blog_id=?
-                """;
-
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            int index=1;
-            statement.setBoolean(index++, blogUpdateRequest.isBlogMain());
-            statement.setString(index++, blogUpdateRequest.getBlogName());
-            statement.setString(index++, blogUpdateRequest.getBlogMbNickname());
-            statement.setString(index++, blogUpdateRequest.getBlogDescription());
-            statement.setLong(index++, blogUpdateRequest.getBlogId());
-
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        // TODO#3-7: 이 메소드에서 블로그의 정보를 수정하는 SQL 쿼리를 작성하고 실행하세요.
+        // - Connection 객체를 얻고, UPDATE SQL 쿼리를 사용하여 블로그의 정보를 업데이트합니다.
+        // - BlogUpdateRequest 객체에서 필요한 정보를 가져옵니다.
+        // - PreparedStatement를 사용하여 SQL 쿼리를 안전하게 실행합니다.
     }
 
     @Override
     public void deleteByBlogId(long blogId) {
-
-        Connection connection = DbConnectionThreadLocal.getConnection();
-        String sql = """
-                    delete from blogs where blog_id=?
-                """;
-
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1,blogId);
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-
+        // TODO#3-8: 이 메소드에서 블로그를 삭제하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, DELETE SQL 쿼리를 사용하여 주어진 blogId에 해당하는 블로그를 삭제합니다.
+        // - PreparedStatement를 사용하여 SQL 쿼리를 안전하게 실행합니다.
     }
 
     @Override
     public Optional<Blog> findByBlogId(long blogId) {
-
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    select 
-                        blog_id,
-                        blog_fid,
-                        blog_main,
-                        blog_name, 
-                        blog_mb_nickname, 
-                        blog_description,
-                        blog_is_public,
-                        created_at, 
-                        updated_at 
-                    from 
-                        blogs 
-                    where 
-                        blog_id=?
-                """;
-
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1,blogId);
-
-            try(ResultSet rs = statement.executeQuery()){
-                if(rs.next()) {
-
-                    long id = rs.getLong("blog_id");
-                    String blogFid = rs.getString("blog_fid");
-                    Boolean blogMain = rs.getBoolean("blog_main");
-                    String blogName = rs.getString("blog_name");
-                    String blogMbNickname = rs.getString("blog_mb_nickname");
-                    String blogDescription = rs.getString("blog_description");
-                    Boolean blogIsPublic = rs.getBoolean("blog_is_public");
-                    LocalDateTime createdAt =  rs.getTimestamp("created_at").toLocalDateTime();
-                    LocalDateTime updatedAt = null;
-                    if(Objects.nonNull(rs.getTimestamp("updated_at"))){
-                        updatedAt = rs.getTimestamp("updated_at").toLocalDateTime();
-                    }
-
-                    Blog blog = Blog.ofExistingBlogInfo(
-                            id,
-                            blogFid,
-                            blogMain,
-                            blogName,
-                            blogMbNickname,
-                            blogDescription,
-                            blogIsPublic,
-                            createdAt,
-                            updatedAt
-                    );
-
-                    return Optional.of(blog);
-                }//end if
-
-            }//end try
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-
+        // TODO#3-9: 이 메소드에서 블로그 정보를 DB에서 조회하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, SELECT SQL 쿼리를 사용하여 주어진 blogId에 해당하는 블로그 정보를 조회합니다.
+        // - 조회된 결과를 Blog 객체로 변환하여 Optional로 반환합니다.
+        // - PreparedStatement를 사용하여 SQL 쿼리를 안전하게 실행합니다.
         return Optional.empty();
     }
 
     @Override
     public boolean existByBlogId(long blogId) {
-
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    select 
-                       1
-                    from 
-                        blogs 
-                    where 
-                        blog_id=?
-                """;
-
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1,blogId);
-
-            try(ResultSet rs = statement.executeQuery()){
-                if(rs.next()) {
-                    return true;
-                }//end if
-            }//end try
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        // TODO#3-10: 이 메소드에서 주어진 blogId에 해당하는 블로그가 DB에 존재하는지 확인하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, SELECT SQL 쿼리를 사용하여 주어진 blogId가 존재하는지 확인합니다.
+        // - 결과가 존재하면 true를 반환하고, 없으면 false를 반환합니다.
         return false;
     }
 
     @Override
     public boolean existByBlogFid(String blogFid) {
-
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    select 
-                       1
-                    from 
-                        blogs 
-                    where 
-                        blog_fid=?
-                """;
-
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1,blogFid);
-
-            try(ResultSet rs = statement.executeQuery()){
-                if(rs.next()) {
-                    return true;
-                }//end if
-            }//end try
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        // TODO#3-11: 이 메소드에서 주어진 blogFid가 DB에 존재하는지 확인하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, SELECT SQL 쿼리를 사용하여 주어진 blogFid가 존재하는지 확인합니다.
+        // - 결과가 존재하면 true를 반환하고, 없으면 false를 반환합니다.
         return false;
     }
 
     @Override
     public boolean existMainBlogByMbNo(long mbNo) {
-
-        Connection connection = DbConnectionThreadLocal.getConnection();
-        String sql = """
-                    SELECT 
-                        1
-                    FROM members a
-                        INNER JOIN blog_member_mappings b ON a.mb_no = b.mb_no
-                        INNER JOIN blogs c ON b.blog_id = c.blog_id
-                    WHERE 
-                             a.mb_no=? 
-                         and c.blog_main=1
-                         and b.role_id='ROLE_OWNER'
-                """;
-
-        try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            psmt.setLong(1,mbNo);
-            try(ResultSet rs = psmt.executeQuery()){
-                if(rs.next()) {
-                    return true;
-                }
-            }
-        }catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        // TODO#3-12: 이 메소드에서 주어진 mbNo에 대해 메인 블로그가 존재하는지 확인하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, SELECT SQL 쿼리를 사용하여 주어진 mbNo에 대해 메인 블로그가 존재하는지 확인합니다.
+        // - 결과가 존재하면 true를 반환하고, 없으면 false를 반환합니다.
         return false;
     }
 
     @Override
     public void updateByBlogIsPublic(long blogId, boolean blogIsPublic) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-        String sql = """
-                update blogs 
-                set 
-                    blog_is_public=? 
-                where blog_id=?
-                """;
-        try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            int index=1;
-            psmt.setBoolean(index++,blogIsPublic);
-            psmt.setLong(index++,blogId);
-            psmt.executeUpdate();
-        }catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        // TODO#3-13: 이 메소드에서 블로그의 공개 여부를 업데이트하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, UPDATE SQL 쿼리를 사용하여 주어진 blogId에 대해 공개 여부를 업데이트합니다.
+        // - PreparedStatement를 사용하여 SQL 쿼리를 안전하게 실행합니다.
     }
 
     @Override
     public void updateBlogMain(long blogId, boolean isBlogMain) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    update blogs 
-                    set
-                        blog_main=?
-                    where 
-                            blog_id = ?
-                """;
-
-        try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            int index=1;
-            psmt.setBoolean(index++,isBlogMain);
-            psmt.setLong(index++,blogId);
-            psmt.executeUpdate();
-        }catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-
+        // TODO#3-14: 이 메소드에서 블로그의 메인 여부를 업데이트하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, UPDATE SQL 쿼리를 사용하여 주어진 blogId에 대해 메인 블로그 여부를 업데이트합니다.
+        // - PreparedStatement를 사용하여 SQL 쿼리를 안전하게 실행합니다.
     }
 
     @Override
     public long countByMbNo(long mbNo, String roleId) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    select
-                    	count(*)
-                    from
-                    	blog_member_mappings a
-                        left join blogs b on a.blog_id = b.blog_id
-                    where
-                    	a.blog_id=b.blog_id
-                      and a.mb_no=?  
-                      and a.role_id=?
-                """;
-        try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            int index=1;
-            psmt.setLong(index++,mbNo);
-            psmt.setString(index++,roleId);
-
-            try(ResultSet rs = psmt.executeQuery()){
-                if(rs.next()) {
-                    return rs.getLong(1);
-                }
-            }
-        }catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-
+        // TODO#3-15: 이 메소드에서 주어진 mbNo와 roleId에 해당하는 블로그의 수를 계산하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, SELECT COUNT(*) SQL 쿼리를 사용하여 주어진 mbNo와 roleId에 해당하는 블로그 수를 계산합니다.
+        // - PreparedStatement를 사용하여 SQL 쿼리를 안전하게 실행하고 결과를 반환합니다.
         return 0;
     }
 
     @Override
     public List<BlogResponse> findAllBlogs(long mbNo, String roleId) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                select
-                	b.blog_id,
-                    b.blog_fid,
-                    b.blog_main,
-                    b.blog_name,
-                    b.blog_mb_nickname,
-                    b.blog_description,
-                    b.blog_is_public,
-                    b.created_at,
-                    b.updated_at
-                from
-                	blog_member_mappings a
-                    left join blogs b on a.blog_id = b.blog_id
-                where
-                	a.blog_id=b.blog_id
-                    and a.mb_no=?
-                    and a.role_id=?
-                """;
-
-        List<BlogResponse> blogResponseList = new ArrayList<>();
-
-        try(PreparedStatement psmt = connection.prepareStatement(sql)){
-
-            psmt.setLong(1,mbNo);
-            psmt.setString(2,roleId);
-
-            try(ResultSet rs = psmt.executeQuery()){
-
-                while(rs.next()) {
-
-                    Long blogId = rs.getLong("blog_id");
-                    String blogFid = rs.getString("blog_fid");
-                    boolean blogMain = rs.getBoolean("blog_main");
-                    String blogName = rs.getString("blog_name");
-                    String blogMbNickname = rs.getString("blog_mb_nickname");
-                    String blogDescription = rs.getString("blog_description");
-                    Boolean blogIsPublic = rs.getBoolean("blog_is_public");
-                    LocalDateTime createdAt = Objects.nonNull(rs.getObject("created_at")) ? rs.getTimestamp("created_at").toLocalDateTime() : null;
-                    LocalDateTime updatedAt = Objects.nonNull(rs.getObject("updated_at")) ? rs.getTimestamp("updated_at").toLocalDateTime() : null;
-
-                    BlogResponse blogResponse = new BlogResponse(
-                        blogId,
-                        blogFid,
-                        blogMain,
-                        blogName,
-                        blogMbNickname,
-                        blogDescription,
-                        blogIsPublic,
-                        createdAt,
-                        updatedAt
-                    );
-                    blogResponseList.add(blogResponse);
-                }
-            }
-
-        }catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-
-        return blogResponseList;
+        // TODO#3-16: 이 메소드에서 모든 블로그를 조회하는 SQL 쿼리와 실행 코드를 작성하세요.
+        // - Connection 객체를 얻고, SELECT SQL 쿼리를 사용하여 주어진 mbNo와 roleId에 해당하는 모든 블로그를 조회합니다.
+        // - 조회된 블로그들을 BlogResponse 객체로 변환하여 List로 반환합니다.
+        return new ArrayList<>();
     }
-
 }

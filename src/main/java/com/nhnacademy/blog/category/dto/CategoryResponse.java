@@ -3,68 +3,38 @@ package com.nhnacademy.blog.category.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * CategoryResponse 클래스는 카테고리 응답 데이터를 나타냅니다.
+ * 이 클래스는 카테고리 ID, 상위 카테고리 ID, 블로그 ID, 주제 ID, 카테고리 이름, 카테고리 순서 등의 정보를 포함합니다.
+ * TODO#6-3 CategoryResponse class 구현
+ */
 public class CategoryResponse {
 
-    private final Long categoryId;
-    private final Long categoryPid;
-    private final Long blogId;
-    private final Integer topicId;
-    private final String categoryName;
-    private final Integer categorySec;
+    private final Long categoryId;   // 카테고리 ID
+    private final Long categoryPid;  // 상위 카테고리 ID
+    private final Long blogId;       // 블로그 ID
+    private final Integer topicId;   // 주제 ID
+    private final String categoryName; // 카테고리 이름
+    private final Integer categorySec; // 카테고리 순서
 
-    List<CategoryResponse> subCategories = new ArrayList<>();
+    private final List<CategoryResponse> subCategories = new ArrayList<>(); // 하위 카테고리 목록
 
+    /**
+     * CategoryResponse 객체의 생성자입니다.
+     * @param categoryId 카테고리 ID
+     * @param categoryPid 상위 카테고리 ID
+     * @param blogId 블로그 ID
+     * @param topicId 주제 ID
+     * @param categoryName 카테고리 이름
+     * @param categorySec 카테고리 순서
+     */
     public CategoryResponse(Long categoryId, Long categoryPid, Long blogId, Integer topicId, String categoryName, Integer categorySec) {
-        this.categoryId = categoryId;
-        this.categoryPid = categoryPid;
-        this.blogId = blogId;
-        this.topicId = topicId;
-        this.categoryName = categoryName;
-        this.categorySec = categorySec;
+        this.categoryId = null;
+        this.categoryPid = null;
+        this.blogId = null;
+        this.topicId = null;
+        this.categoryName = null;
+        this.categorySec = null;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public Long getCategoryPid() {
-        return categoryPid;
-    }
-
-    public Long getBlogId() {
-        return blogId;
-    }
-
-    public Integer getTopicId() {
-        return topicId;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public Integer getCategorySec() {
-        return categorySec;
-    }
-
-    public List<CategoryResponse> getSubCategories() {
-        return this.subCategories;
-    }
-
-    public void addSubCategory(CategoryResponse categoryResponse) {
-        this.subCategories.add(categoryResponse);
-    }
-
-    @Override
-    public String toString() {
-        return "CategoryResponse{" +
-                "categoryId=" + categoryId +
-                ", categoryPid=" + categoryPid +
-                ", blogId=" + blogId +
-                ", topicId=" + topicId +
-                ", categoryName='" + categoryName + '\'' +
-                ", categorySec=" + categorySec +
-                ", subCategories=" + subCategories +
-                '}';
-    }
 }

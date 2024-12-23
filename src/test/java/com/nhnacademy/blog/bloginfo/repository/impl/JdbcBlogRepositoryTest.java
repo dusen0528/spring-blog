@@ -11,6 +11,9 @@ import org.junit.jupiter.api.*;
 
 import java.util.Optional;
 
+/**
+ * TODO#3-TEST 구현
+ */
 @Slf4j
 class JdbcBlogRepositoryTest {
 
@@ -33,150 +36,135 @@ class JdbcBlogRepositoryTest {
         DbConnectionThreadLocal.reset();
     }
 
+    /**
+     * 블로그 정보를 저장(생성)하는 테스트.
+     * 이 테스트는 새 블로그를 생성하고, 저장한 후에 DB에서 해당 블로그를 조회하여
+     * 저장이 성공적으로 되었는지 확인합니다.
+     * 검증 항목:
+     * - 저장된 블로그가 존재하는지 확인
+     * - 저장된 블로그의 필드 값들이 입력한 값과 동일한지 확인
+     */
     @Test
     @DisplayName("블로그정보 저장(생성)")
     void save() {
 
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Optional<Blog> blogOptional = blogRepository.findByBlogId(blog.getBlogId());
-
-        Assertions.assertTrue(blogOptional.isPresent());
-
-        Assertions.assertAll(
-                ()-> Assertions.assertNotNull(blog.getBlogId()),
-                ()->Assertions.assertTrue(blogOptional.get().isBlogMain()),
-                ()->Assertions.assertEquals(blog.getBlogName(), blogOptional.get().getBlogName()),
-                ()->Assertions.assertEquals(blog.getBlogMbNickname(), blogOptional.get().getBlogMbNickname()),
-                ()->Assertions.assertEquals(blog.getBlogDescription(), blogOptional.get().getBlogDescription())
-        );
     }
 
+    /**
+     * 블로그 정보를 수정하는 테스트.
+     * 이 테스트는 기존에 저장된 블로그를 수정하고, 수정된 값을 DB에서 조회하여
+     * 수정이 성공적으로 되었는지 확인합니다.
+     * 검증 항목:
+     * - 수정된 블로그의 필드 값들이 입력한 수정 값과 동일한지 확인
+     */
     @Test
     @DisplayName("블로그정보 수정")
     void update() {
 
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        BlogUpdateRequest blogUpdateRequest = new BlogUpdateRequest(
-                blog.getBlogId(),
-                 false,
-                 "블로그네임-수정",
-            "블로그별명-수정",
-             "블로그설명-수정"
-        );
-
-        blogRepository.update(blogUpdateRequest);
-        Optional<Blog> blogOptional = blogRepository.findByBlogId(blog.getBlogId());
-
-        Assertions.assertTrue(blogOptional.isPresent());
-        Assertions.assertAll(
-            ()->Assertions.assertEquals(blogUpdateRequest.isBlogMain(), blogOptional.get().isBlogMain()),
-            ()->Assertions.assertEquals(blogUpdateRequest.getBlogName(),blogOptional.get().getBlogName()),
-            ()->Assertions.assertEquals(blogUpdateRequest.getBlogMbNickname(),blogOptional.get().getBlogMbNickname()),
-            ()->Assertions.assertEquals(blogUpdateRequest.getBlogDescription(),blogOptional.get().getBlogDescription())
-        );
     }
 
+    /**
+     * 블로그를 삭제하는 테스트.
+     * 이 테스트는 저장된 블로그를 삭제하고, 삭제된 후 DB에서 해당 블로그가 존재하지 않는지
+     * 확인합니다.
+     * 검증 항목:
+     * - 블로그 삭제 후 DB에서 해당 블로그가 존재하지 않는지 확인
+     */
     @Test
     @DisplayName("blog삭제")
     void delete() {
 
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-        blogRepository.deleteByBlogId(blog.getBlogId());
-
-        Optional<Blog> dbBlog =  blogRepository.findByBlogId(blog.getBlogId());
-        Assertions.assertAll(
-                ()-> Assertions.assertTrue(dbBlog.isEmpty())
-        );
-
     }
 
+    /**
+     * 블로그 ID로 블로그 정보를 조회하는 테스트.
+     * 이 테스트는 블로그 ID로 블로그 정보를 조회하여 존재하는지 확인하고,
+     * 해당 블로그의 필드 값들을 검증합니다.
+     * 검증 항목:
+     * - 조회된 블로그가 존재하는지 확인
+     * - 조회된 블로그의 필드 값들이 정확한지 확인
+     */
     @Test
     void findByBlogInfoId() {
 
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Optional<Blog> blogOptional = blogRepository.findByBlogId(blog.getBlogId());
-
-        Assertions.assertTrue(blogOptional.isPresent());
-        Assertions.assertAll(
-                ()-> Assertions.assertNotNull(blog.getBlogId()),
-                ()->Assertions.assertTrue(blogOptional.get().isBlogMain()),
-                ()->Assertions.assertEquals(blog.getBlogName(), blogOptional.get().getBlogName()),
-                ()->Assertions.assertEquals(blog.getBlogMbNickname(), blogOptional.get().getBlogMbNickname()),
-                ()->Assertions.assertEquals(blog.getBlogDescription(), blogOptional.get().getBlogDescription()),
-                ()->Assertions.assertTrue(blogOptional.get().getBlogIsPublic())
-        );
     }
 
+    /**
+     * 주어진 blogId로 블로그가 존재하는지 확인하는 테스트 (존재하는 경우).
+     * 이 테스트는 특정 블로그 ID에 대해 블로그가 존재하는지 확인하고,
+     * 그 결과가 true인지를 검증합니다.
+     * 검증 항목:
+     * - 블로그가 존재하는지 여부를 확인
+     */
     @Test
     @DisplayName("블로그존재여부-by-blogId:true")
     void existByBlogId() {
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
 
-        boolean actual = blogRepository.existByBlogId(blog.getBlogId());
-        Assertions.assertTrue(actual);
     }
-    
+
+    /**
+     * 주어진 blogId로 블로그가 존재하지 않는지 확인하는 테스트 (존재하지 않는 경우).
+     * 이 테스트는 특정 블로그 ID에 대해 블로그가 존재하지 않는지 확인하고,
+     * 그 결과가 false인지를 검증합니다.
+     * 검증 항목:
+     * - 블로그가 존재하지 않는지 여부를 확인
+     */
     @Test
     @DisplayName("블로그존재여부-by-blogId:false")
     void notExistByBlogId() {
-        boolean actual = blogRepository.existByBlogId(1);
-        Assertions.assertFalse(actual);
+
     }
 
+    /**
+     * 주어진 blogFid로 블로그가 존재하는지 확인하는 테스트 (존재하는 경우).
+     * 이 테스트는 특정 블로그 fid에 대해 블로그가 존재하는지 확인하고,
+     * 그 결과가 true인지를 검증합니다.
+     * 검증 항목:
+     * - 블로그 fid가 존재하는지 여부를 확인
+     */
     @Test
     @DisplayName("블로그존재여부-by-blogFid:true")
     void existByBlogFid(){
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
 
-        boolean actual = blogRepository.existByBlogFid(blog.getBlogFid());
-        Assertions.assertTrue(actual);
     }
 
+    /**
+     * 주어진 blogFid로 블로그가 존재하지 않는지 확인하는 테스트 (존재하지 않는 경우).
+     * 이 테스트는 특정 블로그 fid에 대해 블로그가 존재하지 않는지 확인하고,
+     * 그 결과가 false인지를 검증합니다.
+     * 검증 항목:
+     * - 블로그 fid가 존재하지 않는지 여부를 확인
+     */
     @Test
     @DisplayName("블로그존재여부-by-blogFid:false")
     void notExistByBlogFid(){
-        boolean actual = blogRepository.existByBlogFid("marco");
-        Assertions.assertFalse(actual);
+
     }
 
+    /**
+     * 블로그의 공개 여부를 "공개"로 설정하는 테스트.
+     * 이 테스트는 블로그의 공개 여부를 true로 업데이트한 후, 해당 블로그가 공개 상태인지
+     * 확인합니다.
+     * 검증 항목:
+     * - 블로그가 공개 상태인지 확인
+     */
     @Test
     @DisplayName("블로그 공개여부 설정 : 공개")
     void updateByBlogIsPublic_true(){
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        //when
-        blogRepository.updateByBlogIsPublic(blog.getBlogId(),true);
-        Optional<Blog> actual = blogRepository.findByBlogId(blog.getBlogId());
-
-        //then
-        Assertions.assertTrue(actual.get().getBlogIsPublic());
 
     }
 
+    /**
+     * 블로그의 공개 여부를 "비공개"로 설정하는 테스트.
+     * 이 테스트는 블로그의 공개 여부를 false로 업데이트한 후, 해당 블로그가 비공개 상태인지
+     * 확인합니다.
+     * 검증 항목:
+     * - 블로그가 비공개 상태인지 확인
+     */
     @Test
     @DisplayName("블로그 공개여부 설정 : 비공개")
     void updateByBlogIsPublic_false(){
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
 
-        //when
-        blogRepository.updateByBlogIsPublic(blog.getBlogId(),false);
-        Optional<Blog> actual = blogRepository.findByBlogId(blog.getBlogId());
-
-        //then
-        Assertions.assertFalse(actual.get().getBlogIsPublic());
     }
 
 }

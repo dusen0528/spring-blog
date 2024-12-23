@@ -1,95 +1,50 @@
 package com.nhnacademy.blog.bloginfo.domain;
 
 import java.time.LocalDateTime;
+//TODO#3-1 Blog class 구현
 @SuppressWarnings("java:S107")
 public class Blog {
 
+    // 블로그 ID
     private final Long blogId;
+    // 블로그 FID
     private final String blogFid;
+    // 블로그 메인 여부
     private final boolean blogMain;
+    // 블로그 이름
     private final String blogName;
+    // 블로그 회원 닉네임
     private final String blogMbNickname;
+    // 블로그 설명
     private final String blogDescription;
+    // 블로그 공개 여부
     private final Boolean blogIsPublic;
+    // 생성일 (가입일)
     private final LocalDateTime createdAt;
+    // 수정일
     private final LocalDateTime updatedAt;
 
+    // Blog 클래스의 private 생성자
     private Blog(Long blogId, String blogFid, boolean blogMain, String blogName, String blogMbNickname, String blogDescription, Boolean blogIsPublic, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.blogId = blogId;
-        this.blogFid = blogFid;
-        this.blogMain = blogMain;
-        this.blogName = blogName;
-        this.blogMbNickname = blogMbNickname;
-        this.blogDescription = blogDescription;
-        this.blogIsPublic = blogIsPublic;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.blogId = null;
+        this.blogFid = null;
+        this.blogMain = true;
+        this.blogName = null;
+        this.blogMbNickname = null;
+        this.blogDescription = null;
+        this.blogIsPublic = null;
+        this.createdAt = null;
+        this.updatedAt = null;
     }
 
-    public static Blog ofNewBlog(String blogFid, Boolean blogMain, String blogName, String blogMbNickname, String blogDescription){
-        return new Blog(
-            null,
-                blogFid,
-                blogMain,
-                blogName,
-                blogMbNickname,
-                blogDescription,
-                true,
-                LocalDateTime.now(), null);
+    // 새로운 블로그 객체를 생성하는 정적 팩토리 메서드
+    public static Blog ofNewBlog(String blogFid, Boolean blogMain, String blogName, String blogMbNickname, String blogDescription) {
+        return null;
     }
 
-    public static Blog ofExistingBlogInfo(Long blogId, String blogFid, Boolean blogMain, String blogName, String blogMbNickname, String blogDescription, Boolean blogIsPublic, LocalDateTime createdAt, LocalDateTime updatedAt){
-        return new Blog(
-                blogId,
-                blogFid,
-                blogMain,
-                blogName,
-                blogMbNickname,
-                blogDescription,
-                blogIsPublic,
-                createdAt, updatedAt);
+    // 기존 블로그 정보를 이용해 블로그 객체를 생성하는 정적 팩토리 메서드
+    public static Blog ofExistingBlogInfo(Long blogId, String blogFid, Boolean blogMain, String blogName, String blogMbNickname, String blogDescription, Boolean blogIsPublic, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        return null;
     }
 
-    public Long getBlogId() {
-        return blogId;
-    }
-    public String getBlogFid() {
-        return blogFid;
-    }
-    public boolean isBlogMain() {
-        return blogMain;
-    }
-    public String getBlogName() {
-        return blogName;
-    }
-    public String getBlogMbNickname() {
-        return blogMbNickname;
-    }
-    public String getBlogDescription() {
-        return blogDescription;
-    }
-    public Boolean getBlogIsPublic() {
-        return blogIsPublic;
-    }
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    @Override
-    public String toString() {
-        return "Blog{" +
-                "blogId=" + blogId +
-                ", blogFid='" + blogFid + '\'' +
-                ", blogMain=" + blogMain +
-                ", blogName='" + blogName + '\'' +
-                ", blogMbNickname='" + blogMbNickname + '\'' +
-                ", blogDescription='" + blogDescription + '\'' +
-                ", blogIsPublic=" + blogIsPublic +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
-    }
 }

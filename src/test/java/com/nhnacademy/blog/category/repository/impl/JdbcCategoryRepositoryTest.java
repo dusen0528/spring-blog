@@ -1,11 +1,7 @@
 package com.nhnacademy.blog.category.repository.impl;
 
-import com.nhnacademy.blog.bloginfo.domain.Blog;
 import com.nhnacademy.blog.bloginfo.repository.BlogRepository;
 import com.nhnacademy.blog.bloginfo.repository.impl.JdbcBlogRepository;
-import com.nhnacademy.blog.category.domain.Category;
-import com.nhnacademy.blog.category.dto.CategoryUpdateRequest;
-import com.nhnacademy.blog.category.dto.RootCategoryUpdateRequest;
 import com.nhnacademy.blog.category.repository.CategoryRepository;
 import com.nhnacademy.blog.common.context.Context;
 import com.nhnacademy.blog.common.context.ContextHolder;
@@ -13,9 +9,7 @@ import com.nhnacademy.blog.common.transactional.DbConnectionThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 
-import java.util.List;
-import java.util.Optional;
-
+//TODO#6-TEST
 @Slf4j
 class JdbcCategoryRepositoryTest {
     static CategoryRepository categoryRepository;
@@ -42,281 +36,74 @@ class JdbcCategoryRepositoryTest {
     @Test
     @DisplayName("카테고리 등록")
     void save() {
-
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Category category = Category.ofNewRootCategory(blog.getBlogId(),null,"스프링",1);
-        //when
-        categoryRepository.save(category);
-
-        //then
-        Optional<Category> categoryOptional = categoryRepository.findByCategoryId(category.getCategoryId());
-        Assertions.assertTrue(categoryOptional.isPresent());
-        Assertions.assertAll(
-                ()->Assertions.assertNotNull(category.getCategoryId()),
-                ()->Assertions.assertNull(categoryOptional.get().getCategoryPid()),
-                ()->Assertions.assertEquals(category.getCategoryName(),categoryOptional.get().getCategoryName()),
-                ()->Assertions.assertEquals(category.getCategorySec(),categoryOptional.get().getCategorySec()),
-                ()->Assertions.assertNotNull(categoryOptional.get().getCreatedAt())
-        );
-
+        // TODO: 카테고리가 정상적으로 등록되는지 확인
+        // 1. 새로운 카테고리가 저장되고, 그 카테고리의 ID가 존재하는지 확인
+        // 2. 등록된 카테고리의 이름, 순서, 생성일 등이 제대로 저장되었는지 확인
     }
 
     @Test
     @DisplayName("서브카테고리 등록")
-    void save_subCategory(){
-
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        //when
-        Category category1 = Category.ofNewRootCategory(blog.getBlogId(),null,"스프링",1);
-        categoryRepository.save(category1);
-        Category category2 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"스프링-코어",1);
-        categoryRepository.save(category2);
-
-        Optional<Category> categoryOptional = categoryRepository.findByCategoryId(category2.getCategoryId());
-
-        //then
-        Assertions.assertTrue(categoryOptional.isPresent());
-        Assertions.assertAll(
-                ()->Assertions.assertNotNull(category2.getCategoryId()),
-                ()->Assertions.assertEquals(category1.getCategoryId(),categoryOptional.get().getCategoryPid()),
-                ()->Assertions.assertEquals(category2.getCategoryName(),categoryOptional.get().getCategoryName()),
-                ()->Assertions.assertEquals(category2.getCategorySec(),categoryOptional.get().getCategorySec()),
-                ()->Assertions.assertNotNull(category2.getCreatedAt())
-        );
-
+    void save_subCategory() {
+        // TODO: 서브 카테고리가 정상적으로 등록되는지 확인
+        // 1. 서브 카테고리가 정상적으로 저장되고, 부모 카테고리와 연결되는지 확인
+        // 2. 서브 카테고리의 이름, 순서, 생성일 등이 제대로 저장되었는지 확인
     }
 
     @Test
     @DisplayName("category-업데이트")
     void update() {
-
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Category category1 = Category.ofNewRootCategory(blog.getBlogId(),null,"스프링",1);
-        categoryRepository.save(category1);
-
-        Category category2 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"스프링-코어",1);
-        categoryRepository.save(category2);
-
-        CategoryUpdateRequest categoryUpdateRequest = new CategoryUpdateRequest(category2.getCategoryId(),null,1l,null, "Spring-core",10);
-        categoryRepository.update(categoryUpdateRequest);
-
-        //then
-        Optional<Category> categoryOptional = categoryRepository.findByCategoryId(category2.getCategoryId());
-        Assertions.assertAll(
-                ()->Assertions.assertEquals(category2.getCategoryId(),categoryOptional.get().getCategoryId()),
-                ()->Assertions.assertEquals(categoryUpdateRequest.getCategoryName(),categoryOptional.get().getCategoryName()),
-                ()->Assertions.assertEquals(categoryUpdateRequest.getCategorySec(),categoryOptional.get().getCategorySec()),
-                ()->Assertions.assertNotNull(categoryOptional.get().getUpdatedAt())
-        );
+        // TODO: 카테고리가 정상적으로 업데이트되는지 확인
+        // 1. 카테고리 이름 및 순서 등의 업데이트가 반영되는지 확인
+        // 2. 업데이트 후 카테고리의 수정 시간이 올바르게 갱신되는지 확인
     }
 
     @Test
     @DisplayName("카테고리-삭제")
     void delete() {
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-        //when
-        blogRepository.deleteByBlogId(blog.getBlogId());
-
-        boolean actual = blogRepository.existByBlogId(blog.getBlogId());
-
-        Assertions.assertFalse(actual);
+        // TODO: 카테고리가 삭제되었을 때, 블로그가 존재하지 않는지 확인
+        // 1. 삭제된 카테고리가 블로그와 연결된 상태에서 올바르게 삭제되는지 확인
+        // 2. 삭제 후 블로그의 존재 여부를 체크하여, 블로그가 정상적으로 삭제되었는지 확인
     }
 
     @Test
     @DisplayName("category 조회")
     void findByCategoryId() {
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Category category = Category.ofNewRootCategory(blog.getBlogId(),null,"스프링",1);
-        categoryRepository.save(category);
-
-        //when
-        Optional<Category> categoryOptional = categoryRepository.findByCategoryId(category.getCategoryId());
-
-        //then
-        Assertions.assertTrue(categoryOptional.isPresent());
-        Assertions.assertAll(
-                ()->Assertions.assertNotNull(category.getCategoryId()),
-                ()->Assertions.assertNull(categoryOptional.get().getCategoryPid()),
-                ()->Assertions.assertEquals(category.getCategoryName(),categoryOptional.get().getCategoryName()),
-                ()->Assertions.assertEquals(category.getCategorySec(),categoryOptional.get().getCategorySec()),
-                ()->Assertions.assertNotNull(categoryOptional.get().getCreatedAt())
-        );
-
+        // TODO: 특정 카테고리를 조회했을 때, 해당 카테고리가 정상적으로 반환되는지 확인
+        // 1. 카테고리 ID로 조회하여, 카테고리의 이름, 순서, 생성일 등이 정확히 일치하는지 확인
     }
 
     @Test
     @DisplayName("category 전체조회")
     void findAll() {
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Category category1 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-1",1);
-        Category category2 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-2",2);
-        Category category3 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-3",3);
-        Category category4 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-4",4);
-        Category category5 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-5",5);
-
-        categoryRepository.save(category1);
-        categoryRepository.save(category2);
-        categoryRepository.save(category3);
-        categoryRepository.save(category4);
-        categoryRepository.save(category5);
-
-        List<Category> categoryList = categoryRepository.findAll(blog.getBlogId(), null);
-
-        log.debug("categoryList-size: {}", categoryList.size());
-
-        Assertions.assertAll(
-                ()->Assertions.assertEquals(5, categoryList.size()),
-                ()->Assertions.assertEquals(category1.getCategoryId(),  categoryList.get(0).getCategoryId()),
-                ()->Assertions.assertEquals(category2.getCategoryId(),  categoryList.get(1).getCategoryId()),
-                ()->Assertions.assertEquals(category3.getCategoryId(),  categoryList.get(2).getCategoryId()),
-                ()->Assertions.assertEquals(category4.getCategoryId(),  categoryList.get(3).getCategoryId()),
-                ()->Assertions.assertEquals(category5.getCategoryId(),  categoryList.get(4).getCategoryId())
-        );
+        // TODO: 블로그에 속한 모든 카테고리를 조회했을 때, 모든 카테고리가 정상적으로 반환되는지 확인
+        // 1. 블로그에 속한 모든 카테고리가 반환되며, 반환된 카테고리의 순서 및 ID가 정확히 일치하는지 확인
     }
 
     @Test
     @DisplayName("category 서브 카테고리 - 조회")
     void findAll_subCategory() {
-        //given
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Category category1 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-1",1);
-        Category category2 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-2",2);
-        Category category3 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-3",3);
-        Category category4 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-4",4);
-        Category category5 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-5",5);
-
-        categoryRepository.save(category1);
-        categoryRepository.save(category2);
-        categoryRepository.save(category3);
-        categoryRepository.save(category4);
-        categoryRepository.save(category5);
-
-        Category subCategory1 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-1",1);
-        Category subCategory2 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-2",1);
-        Category subCategory3 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-3",1);
-        Category subCategory4 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-4",1);
-        Category subCategory5 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-5",1);
-
-        categoryRepository.save(subCategory1);
-        categoryRepository.save(subCategory2);
-        categoryRepository.save(subCategory3);
-        categoryRepository.save(subCategory4);
-        categoryRepository.save(subCategory5);
-
-        List<Category> categoryList = categoryRepository.findAll(blog.getBlogId(), category1.getCategoryId());
-
-        log.debug("categoryList-size: {}", categoryList.size());
-
-        Assertions.assertAll(
-                ()->Assertions.assertEquals(5, categoryList.size()),
-                ()->Assertions.assertEquals(subCategory1.getCategoryId(),  categoryList.get(0).getCategoryId()),
-                ()->Assertions.assertEquals(subCategory2.getCategoryId(),  categoryList.get(1).getCategoryId()),
-                ()->Assertions.assertEquals(subCategory3.getCategoryId(),  categoryList.get(2).getCategoryId()),
-                ()->Assertions.assertEquals(subCategory4.getCategoryId(),  categoryList.get(3).getCategoryId()),
-                ()->Assertions.assertEquals(subCategory5.getCategoryId(),  categoryList.get(4).getCategoryId())
-        );
+        // TODO: 특정 카테고리의 서브 카테고리를 조회했을 때, 서브 카테고리들이 정상적으로 반환되는지 확인
+        // 1. 서브 카테고리가 정상적으로 반환되며, 반환된 서브 카테고리의 ID와 이름이 정확히 일치하는지 확인
     }
 
     @Test
     @DisplayName("categoryId 존재여부 체크")
     void existsByCategoryId() {
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Category category = Category.ofNewRootCategory(blog.getBlogId(),null,"스프링",1);
-        //when
-        categoryRepository.save(category);
-
-        //then
-        Assertions.assertTrue(categoryRepository.existsByCategoryId(category.getCategoryId()));
+        // TODO: 카테고리 ID가 존재하는지 확인
+        // 1. 카테고리 ID로 조회했을 때, 해당 카테고리가 존재하는지 체크
     }
 
     @Test
     @DisplayName("서브카테고리 존재유무 : true")
-    void existsSubCategoryByCategoryId(){
-
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Category category1 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-1",1);
-        Category category2 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-2",2);
-        Category category3 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-3",3);
-        Category category4 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-4",4);
-        Category category5 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-5",5);
-
-        categoryRepository.save(category1);
-        categoryRepository.save(category2);
-        categoryRepository.save(category3);
-        categoryRepository.save(category4);
-        categoryRepository.save(category5);
-
-        Category subCategory1 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-1",1);
-        Category subCategory2 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-2",1);
-        Category subCategory3 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-3",1);
-        Category subCategory4 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-4",1);
-        Category subCategory5 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-5",1);
-
-        categoryRepository.save(subCategory1);
-        categoryRepository.save(subCategory2);
-        categoryRepository.save(subCategory3);
-        categoryRepository.save(subCategory4);
-        categoryRepository.save(subCategory5);
-
-        boolean actual = categoryRepository.existsSubCategoryByCategoryId(category1.getCategoryId());
-        Assertions.assertTrue(actual);
-
+    void existsSubCategoryByCategoryId() {
+        // TODO: 특정 카테고리에 서브 카테고리가 존재하는지 확인
+        // 1. 특정 카테고리에 서브 카테고리가 존재하는지 체크
     }
 
     @Test
     @DisplayName("서브카테고리 존재유무 : false")
-    void notExistsSubCategoryByCategoryId(){
-        Blog blog = Blog.ofNewBlog("marco",true,"NHN아카데미-blog","nhn-academy-marco","NHN아카데미-블로그 입니다.");
-        blogRepository.save(blog);
-
-        Category category1 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-1",1);
-        Category category2 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-2",2);
-        Category category3 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-3",3);
-        Category category4 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-4",4);
-        Category category5 = Category.ofNewRootCategory(blog.getBlogId(),null,"카테고리-5",5);
-
-        categoryRepository.save(category1);
-        categoryRepository.save(category2);
-        categoryRepository.save(category3);
-        categoryRepository.save(category4);
-        categoryRepository.save(category5);
-
-        Category subCategory1 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-1",1);
-        Category subCategory2 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-2",1);
-        Category subCategory3 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-3",1);
-        Category subCategory4 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-4",1);
-        Category subCategory5 = Category.ofNewSubCategory(category1.getCategoryId(), blog.getBlogId(),null,"카테고리-1-5",1);
-
-        categoryRepository.save(subCategory1);
-        categoryRepository.save(subCategory2);
-        categoryRepository.save(subCategory3);
-        categoryRepository.save(subCategory4);
-        categoryRepository.save(subCategory5);
-
-        boolean actual = categoryRepository.existsSubCategoryByCategoryId(category2.getCategoryId());
-        Assertions.assertFalse(actual);
+    void notExistsSubCategoryByCategoryId() {
+        // TODO: 특정 카테고리에 서브 카테고리가 존재하지 않는지 확인
+        // 1. 특정 카테고리에 서브 카테고리가 존재하지 않는지 체크
     }
 }

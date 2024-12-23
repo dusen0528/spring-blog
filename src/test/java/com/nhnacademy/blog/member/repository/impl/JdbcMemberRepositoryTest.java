@@ -52,7 +52,10 @@ class JdbcMemberRepositoryTest {
         memberRepository.save(member2);
 
         Optional<Member> actualOptionalMember1 = memberRepository.findByMbNo(member1.getMbNo());
-        Optional<Member> actualOptionalMember2 = memberRepository.findByMbNo(member1.getMbNo());
+        Optional<Member> actualOptionalMember2 = memberRepository.findByMbNo(member2.getMbNo());
+
+        Assertions.assertTrue(actualOptionalMember1.isPresent());
+        Assertions.assertTrue(actualOptionalMember2.isPresent());
 
         log.debug("member1: {}", actualOptionalMember1.get());
         log.debug("member2: {}", actualOptionalMember2.get());
@@ -66,10 +69,10 @@ class JdbcMemberRepositoryTest {
                 ()->Assertions.assertNotNull(actualOptionalMember1.get().getCreatedAt()),
 
                 ()->Assertions.assertNotNull(actualOptionalMember2.get()),
-                ()->Assertions.assertEquals(member1.getMbEmail(), actualOptionalMember2.get().getMbEmail()),
-                ()->Assertions.assertEquals(member1.getMbName(), actualOptionalMember2.get().getMbName()),
-                ()->Assertions.assertEquals(member1.getMbPassword(), actualOptionalMember2.get().getMbPassword()),
-                ()->Assertions.assertEquals(member1.getMbMobile(), actualOptionalMember2.get().getMbMobile()),
+                ()->Assertions.assertEquals(member2.getMbEmail(), actualOptionalMember2.get().getMbEmail()),
+                ()->Assertions.assertEquals(member2.getMbName(), actualOptionalMember2.get().getMbName()),
+                ()->Assertions.assertEquals(member2.getMbPassword(), actualOptionalMember2.get().getMbPassword()),
+                ()->Assertions.assertEquals(member2.getMbMobile(), actualOptionalMember2.get().getMbMobile()),
                 ()->Assertions.assertNotNull(actualOptionalMember2.get().getCreatedAt())
         );
     }
@@ -77,14 +80,14 @@ class JdbcMemberRepositoryTest {
     @Test
     @DisplayName("회원정보 수정{이메일,이름,연락처}")
     void update() {
-        // 회원 수정 시 수정된 정보(이메일, 이름, 연락처)가 데이터베이스에 반영되는지 확인
+        // TODO:회원 수정 시 수정된 정보(이메일, 이름, 연락처)가 데이터베이스에 반영되는지 확인
 
     }
 
     @Test
     @DisplayName("회원삭제")
     void delete() {
-        // 회원 삭제 후 해당 회원 정보가 데이터베이스에서 삭제되었는지 검증
+        // TODO: 회원 삭제 후 해당 회원 정보가 데이터베이스에서 삭제되었는지 검증
         // 삭제된 회원의 정보를 조회하여 데이터베이스에서 없는지 확인
 
     }
@@ -92,90 +95,90 @@ class JdbcMemberRepositoryTest {
     @Test
     @DisplayName("비밀번호 변경")
     void updatePassword(){
-        // 비밀번호 변경 후, 변경된 비밀번호가 데이터베이스에 반영되는지 확인
+        //TODO: 비밀번호 변경 후, 변경된 비밀번호가 데이터베이스에 반영되는지 확인
 
     }
 
     @Test
     @DisplayName("회원조회-by-회원번호")
     void findByMbNo() {
-        // 회원번호로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
+        //TODO: 회원번호로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
     }
 
     @Test
     @DisplayName("회원조회-by-email")
     void findByMbEmail() {
-        // 이메일로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
+        //TODO: 이메일로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
 
     }
 
     @Test
     @DisplayName("회원조회-by-mobile")
     void findByMbMobile() {
-        // 모바일 번호로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
+        //TODO: 모바일 번호로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
 
     }
 
     @Test
     @DisplayName("회원번호로 회원존재여부 : true")
     void existsByMbNo() {
-        // 회원번호로 조회 시 해당 회원이 존재하는지 확인
+        //TODO: 회원번호로 조회 시 해당 회원이 존재하는지 확인
 
     }
 
     @Test
     @DisplayName("회원번호로 회원존재여부 : false")
     void notExistsByMbNo() {
-        // 존재하지 않는 회원번호로 조회 시 회원이 존재하지 않음을 확인
+        //TODO: 존재하지 않는 회원번호로 조회 시 회원이 존재하지 않음을 확인
 
     }
 
     @Test
     @DisplayName("회원존재여부-by-email : true")
     void existsByMbEmail() {
-        // 이메일로 조회 시 해당 회원이 존재하는지 확인
+        //TODO: 이메일로 조회 시 해당 회원이 존재하는지 확인
 
     }
 
     @Test
     @DisplayName("회원존재여부-by-email : false")
     void notExistsByMbEmail() {
-        // 존재하지 않는 이메일로 조회 시 회원이 존재하지 않음을 검증
+        //TODO: 존재하지 않는 이메일로 조회 시 회원이 존재하지 않음을 검증
 
     }
 
     @Test
     @DisplayName("회원존재여부-by-mobile : true")
     void existsByMbMobile() {
-        // 모바일 번호로 조회 시 해당 회원이 존재하는지 확인
+        //TODO: 모바일 번호로 조회 시 해당 회원이 존재하는지 확인
 
     }
 
     @Test
     @DisplayName("회원존재여부-by-mobile : false")
     void notExistsByMbMobile() {
-        // 존재하지 않는 모바일 번호로 조회 시 회원이 존재하지 않음을 검증
+        //TODO: 존재하지 않는 모바일 번호로 조회 시 회원이 존재하지 않음을 검증
 
     }
 
     @Test
     @DisplayName("회원 탈퇴여부: true")
     void isMemberWithdrawn_true(){
-        // 회원이 탈퇴 후, 탈퇴 상태가 정상적으로 반영되었는지 확인
+        //TODO: 회원이 탈퇴 후, 탈퇴 상태가 정상적으로 반영되었는지 확인
 
     }
 
     @Test
     @DisplayName("회원 탈퇴여부: false")
     void isMemberWithdrawn_false(){
-        // 탈퇴되지 않은 회원 상태가 정상적으로 반영되었는지 확인
+        //TODO: 탈퇴되지 않은 회원 상태가 정상적으로 반영되었는지 확인
 
     }
 
     @Test
     @DisplayName("회원탈퇴:탈퇴일자 수정")
     void updateWithdrawalAt() {
-        // 탈퇴일자가 변경된 후, 변경된 일자가 데이터베이스에 정확히 반영되는지 확인
+        //TODO: 탈퇴일자가 변경된 후, 변경된 일자가 데이터베이스에 정확히 반영되는지 확인
 
     }
 }

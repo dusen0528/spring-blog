@@ -10,122 +10,51 @@ import com.nhnacademy.blog.common.transactional.DbConnectionThreadLocal;
 import java.sql.*;
 import java.util.Optional;
 
-@Repository(JdbcBlogMemberMappingRepository.BEAN_NAME)
+//TODO#4-3 @Repository 애너테이션을 추가하여 빈으로 등록합니다.
+
 public class JdbcBlogMemberMappingRepository implements BlogMemberMappingRepository {
-    public static final String BEAN_NAME = "jdbcBlogMemberMappingRepository";
+    public static final String BEAN_NAME = "changeMe";
 
     @Override
     public void save(BlogMemberMapping blogMemberMapping) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    insert into blog_member_mappings set 
-                        mb_no = ?,
-                        blog_id = ?,
-                        role_id = ?
-                """;
-
-        try(PreparedStatement psmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
-            int index=1;
-            psmt.setLong(index++, blogMemberMapping.getMbNo());
-            psmt.setLong(index++, blogMemberMapping.getBlogId());
-            psmt.setString(index++,blogMemberMapping.getRoleId());
-            psmt.executeUpdate();
-
-            try(ResultSet generatedKeys = psmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    Long blogMemberId = generatedKeys.getLong(1);
-                    ReflectionUtils.setField(blogMemberMapping, "blogMemberId", blogMemberId);
-                }
-            }
-        }catch (SQLException e){
-            throw new DatabaseException(e);
-        }
+        // TODO#4-4 블로그 회원 정보를 데이터베이스에 저장하는 기능을 구현합니다.
+        //  1. DB 커넥션을 가져옵니다.
+        //  2. INSERT SQL 문을 작성합니다.
+        //  3. PreparedStatement를 생성하고 값을 설정합니다.
+        //  4. SQL을 실행하고 생성된 키를 받아옵니다.
+        //  5. 블로그 회원 ID를 blogMemberMapping 객체에 설정합니다.
     }
 
     @Override
     public void deleteByBlogMemberMappingId(Long blogMemberId) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-        String sql = """
-                    delete from blog_member_mappings where blog_member_id=?
-                """;
-        try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            psmt.setLong(1,blogMemberId);
-            psmt.executeUpdate();
-        }catch (SQLException e){
-            throw new DatabaseException(e);
-        }
+        // TODO#4-5 블로그 회원 정보를 데이터베이스에서 삭제하는 기능을 구현합니다.
+        //  1. DB 커넥션을 가져옵니다.
+        //  2. DELETE SQL 문을 작성합니다.
+        //  3. PreparedStatement를 생성하고 값을 설정합니다.
+        //  4. SQL을 실행하여 블로그 회원 정보를 삭제합니다.
     }
 
     @Override
     public Optional<BlogMemberMapping> findByBlogMemberId(Long blogMemberId) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-        String sql = """
-                select 
-                    blog_member_id, 
-                    mb_no, 
-                    blog_id, 
-                    role_id 
-                from blog_member_mappings
-                where 
-                    blog_member_id=?
-                """;
-
-        try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            int index=1;
-            psmt.setLong(index++,blogMemberId);
-            try(ResultSet rs = psmt.executeQuery()){
-                if(rs.next()){
-                    long dbBlogMemberId = rs.getLong("blog_member_id");
-                    long dbMbNo = rs.getLong("mb_no");
-                    long dbBlogId = rs.getLong("blog_id");
-                    String dbRoleId = rs.getString("role_id");
-                    BlogMemberMapping blogMemberMapping = BlogMemberMapping.ofExistingBlogMemberMapping(dbBlogMemberId,dbMbNo,dbBlogId,dbRoleId);
-                    return Optional.of(blogMemberMapping);
-                }
-            }
-        }catch (SQLException e){
-            throw new DatabaseException(e);
-        }
-
+        // TODO#4-6 블로그 회원 ID로 블로그 회원 정보를 조회하는 기능을 구현합니다.
+        //  1. DB 커넥션을 가져옵니다.
+        //  2. SELECT SQL 문을 작성합니다.
+        //  3. PreparedStatement를 생성하고 값을 설정합니다.
+        //  4. SQL을 실행하여 결과를 ResultSet으로 받습니다.
+        //  5. ResultSet에서 데이터를 추출하여 BlogMemberMapping 객체를 생성합니다.
+        //  6. 조회된 블로그 회원 정보를 Optional로 반환합니다.
         return Optional.empty();
     }
 
     @Override
     public Optional<BlogMemberMapping> findByMbNoAndBlogId(Long mbNo, Long blogId) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                select 
-                    blog_member_id, 
-                    mb_no, 
-                    blog_id, 
-                    role_id
-                from 
-                    blog_member_mappings
-                where 
-                    mb_no=? and blog_id=?
-                """;
-
-        try(PreparedStatement psmt = connection.prepareStatement(sql)){
-            int index=1;
-            psmt.setLong(index++,mbNo);
-            psmt.setLong(index++,blogId);
-
-            try(ResultSet rs = psmt.executeQuery()){
-                if(rs.next()){
-                    long dbBlogMemberId = rs.getLong("blog_member_id");
-                    long dbMbNo = rs.getLong("mb_no");
-                    long dbBlogId = rs.getLong("blog_id");
-                    String dbRoleId = rs.getString("role_id");
-                    BlogMemberMapping blogMemberMapping = BlogMemberMapping.ofExistingBlogMemberMapping(dbBlogMemberId,dbMbNo,dbBlogId,dbRoleId);
-                    return Optional.of(blogMemberMapping);
-                }
-            }
-        }catch (SQLException e){
-            throw new DatabaseException(e);
-        }
-
+        // TODO#4-7 회원 번호와 블로그 ID로 블로그 회원 정보를 조회하는 기능을 구현합니다.
+        //  1. DB 커넥션을 가져옵니다.
+        //  2. SELECT SQL 문을 작성합니다.
+        //  3. PreparedStatement를 생성하고 값을 설정합니다.
+        //  4. SQL을 실행하여 결과를 ResultSet으로 받습니다.
+        //  5. ResultSet에서 데이터를 추출하여 BlogMemberMapping 객체를 생성합니다.
+        //  6. 조회된 블로그 회원 정보를 Optional로 반환합니다.
         return Optional.empty();
     }
 }
