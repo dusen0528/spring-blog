@@ -28,7 +28,7 @@ public class ReflectionUtils {
      */
     @SuppressWarnings("java:S3011")
     public static void setField(Object target, String fieldName, Object value) {
-        /*TODO#5-12 객체의 특정 field에 값을 강제로 할당 합니다.*/
+        /*12 객체의 특정 field에 값을 강제로 할당 합니다.*/
 
         Field field = null;
         try {
@@ -49,7 +49,7 @@ public class ReflectionUtils {
      */
     @SuppressWarnings("java:S3740")
     public static <T>List<ClassWrapper<T>>  classScan(String packageName, Class<T> targetClass) {
-        //TODO#5-13 classScan() 구현합니다.
+        //13 classScan() 구현합니다.
 
         //Reflections객체를 packageName을 사용해서 초기화 합니다.
         Reflections reflections = new Reflections(packageName);
@@ -85,7 +85,7 @@ public class ReflectionUtils {
 
     @SuppressWarnings("java:S3740")
     public static List<ClassWrapper> classScanByAnnotated(String packageName, Class<? extends Annotation> annotatedClass) {
-        //TODO#5-14 classScanByAnnotated() 구현 합니다.
+        //14 classScanByAnnotated() 구현 합니다.
 
         //Reflections객체를 packageName을 사용해서 초기화 합니다.
         Reflections reflections = new Reflections(packageName);
@@ -122,7 +122,7 @@ public class ReflectionUtils {
      * @return
      */
     public static <T>Constructor<T> findFirstConstructor(Class<?> clazz) {
-        //TODO#5-15 findFirstConstructor()를 구현 합니다.
+        //15 findFirstConstructor()를 구현 합니다.
 
         //clazz로 부터 생성자 리스트를 구합니다.
         Constructor<?>[] constructors = clazz.getConstructors();
@@ -143,7 +143,7 @@ public class ReflectionUtils {
      */
     @SuppressWarnings("java:S3740")
     public static Object[] getParameterFromContext(Context context, Constructor constructor){
-        //TODO#5-16 constructor 생성자에 주입되는 parameter를 조회하고 해당 parameter에 해당되는 객체를 Context로 부터 Bean(객체)를 주입 받아서 Object[] 형태로 반환 합니다.
+        //16 constructor 생성자에 주입되는 parameter를 조회하고 해당 parameter에 해당되는 객체를 Context로 부터 Bean(객체)를 주입 받아서 Object[] 형태로 반환 합니다.
 
         Object[] parameters = null;
 

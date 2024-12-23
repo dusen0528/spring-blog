@@ -16,7 +16,7 @@ public class ApplicationContext  implements Context{
     private final ConcurrentMap<String, Object> beanMap;
 
     public ApplicationContext() {
-        //TODO#1-1 applicationContext 초기화
+        //1 applicationContext 초기화
         //beanMap을 초기화, initialize() method를 호출 합니다.
         this.beanMap = new ConcurrentHashMap<>();
         initialize();
@@ -25,12 +25,12 @@ public class ApplicationContext  implements Context{
     private synchronized void initialize(){
         log.debug("Initializeable based, initializing application context");
 
-        /*TODO#1-2 Initializeable 구현 class를 scan 한다.
+        /*2 Initializeable 구현 class를 scan 한다.
                ReflectionUtils.classScan() method를 이용해서 구현 합니다.
         */
         List<ClassWrapper<Initializeable>> classWrappers = ReflectionUtils.classScan("com.nhnacademy.blog", Initializeable.class);
 
-        /*TODO#1-3 classWrappers를 순회 하면서 initialize method 호출을 통해서 초기화 합니다.
+        /*3 classWrappers를 순회 하면서 initialize method 호출을 통해서 초기화 합니다.
             초기화 중 예외 : ReflectionException 이용해서 처리 합니다.
         */
         for(ClassWrapper<Initializeable> classWrapper : classWrappers){
@@ -48,7 +48,7 @@ public class ApplicationContext  implements Context{
 
     @Override
     public void registerBean(String name, Object object) {
-        /*TODO#1-4 beanMap에 object를 등록 합니다.
+        /*4 beanMap에 object를 등록 합니다.
          - 등록하는 과정에서 objectNameCheck method를 이용해서 name에 해당되는 객체가 존재하는지 체크 합니다.
          - 객체를 등록하는 과정은 멀티 쓰레드 환경에서 안정성이 보장되어야 합니다.
         */
@@ -60,7 +60,7 @@ public class ApplicationContext  implements Context{
 
     @Override
     public void removeBean(String name) {
-        /* TODO#1-5 beanMap에 name에 해당되는 객체를 삭제 합니다.
+        /* 5 beanMap에 name에 해당되는 객체를 삭제 합니다.
             삭제 과정에서 objectNameCheck method를 이용해서 name에 해당되는 객체가 존재하는지 체크 합니다.
             삭제 과정은 멀티 쓰레드 환경에서 안정성이 보장되어야 합니다.
         */
@@ -72,7 +72,7 @@ public class ApplicationContext  implements Context{
 
     @Override
     public Object getBean(String name) {
-        /* TODO#1-6 beanMap에 name에 해당되는 객체를 반환 합니다.
+        /* 6 beanMap에 name에 해당되는 객체를 반환 합니다.
             - name에 해당하는 객체가 존재하지 않는다면 BeanNotFoundException 예외가 발생 합니다.
          */
         objectNameCheck(name);
@@ -85,7 +85,7 @@ public class ApplicationContext  implements Context{
     }
 
     private void objectNameCheck(String name){
-        //TODO#1-7 name이 null or "" 이면 IllegalArgumentException이 발생 합니다.
+        //7 name이 null or "" 이면 IllegalArgumentException이 발생 합니다.
         if(Objects.isNull(name) || name.isEmpty()){
             throw new IllegalArgumentException(name);
         }

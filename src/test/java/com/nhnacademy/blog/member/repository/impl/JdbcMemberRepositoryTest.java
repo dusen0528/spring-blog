@@ -14,6 +14,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * TODO#1-TEST 아래 테스트 코드를 작성하세요.
+ */
 @Slf4j
 class JdbcMemberRepositoryTest {
     static MemberRepository memberRepository;
@@ -38,6 +41,9 @@ class JdbcMemberRepositoryTest {
     @Test
     @DisplayName("회원등록")
     void save() {
+
+        // 새 회원 저장 시 데이터베이스에 회원 정보가 정상적으로 저장되는지 검증
+        // 저장 후, 데이터베이스에서 회원 정보를 조회하여 저장된 데이터와 일치하는지 확인
 
         Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
         Member member2 = Member.ofNewMember("test@nhnacademy.com","테스트","12345","01011112222");
@@ -66,200 +72,110 @@ class JdbcMemberRepositoryTest {
                 ()->Assertions.assertEquals(member1.getMbMobile(), actualOptionalMember2.get().getMbMobile()),
                 ()->Assertions.assertNotNull(actualOptionalMember2.get().getCreatedAt())
         );
-
     }
 
     @Test
-    @DisplayName("회원정보 수정{이메일,이름,연락처")
+    @DisplayName("회원정보 수정{이메일,이름,연락처}")
     void update() {
-        Member member3 = Member.ofNewMember("member3@nhnacademy.com","회원3","12345","01033333333");
-        memberRepository.save(member3);
+        // 회원 수정 시 수정된 정보(이메일, 이름, 연락처)가 데이터베이스에 반영되는지 확인
 
-        MemberUpdateRequest memberUpdateRequest = new MemberUpdateRequest(
-                member3.getMbNo(),
-                "member3@gmail.com",
-                "NHN아카데미3",
-                "01033334444"
-        );
-
-        memberRepository.update(memberUpdateRequest);
-
-        Optional<Member> actualOptionalMember3 = memberRepository.findByMbNo(member3.getMbNo());
-
-        Assertions.assertAll(
-            ()-> Assertions.assertEquals("member3@gmail.com",actualOptionalMember3.get().getMbEmail()),
-            ()-> Assertions.assertEquals("NHN아카데미3",actualOptionalMember3.get().getMbName()),
-            ()-> Assertions.assertEquals("01033334444",actualOptionalMember3.get().getMbMobile())
-        );
     }
-
 
     @Test
     @DisplayName("회원삭제")
     void delete() {
-        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member1);
-        log.debug("member1:{}",member1);
+        // 회원 삭제 후 해당 회원 정보가 데이터베이스에서 삭제되었는지 검증
+        // 삭제된 회원의 정보를 조회하여 데이터베이스에서 없는지 확인
 
-        memberRepository.deleteByMbNo(member1.getMbNo());
-        boolean actual = memberRepository.existsByMbNo(member1.getMbNo());
-        log.debug("member with id [{}] has bean deleted:{}",member1.getMbNo(),actual);
-        Assertions.assertFalse(actual);
     }
 
     @Test
     @DisplayName("비밀번호 변경")
     void updatePassword(){
-        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member1);
-        log.debug("member1:{}",member1);
-        String mbPassword = "changePassword";
-        memberRepository.updatePassword(member1.getMbNo(),mbPassword);
+        // 비밀번호 변경 후, 변경된 비밀번호가 데이터베이스에 반영되는지 확인
 
-        Optional<Member> dbMemberOptional = memberRepository.findByMbNo(member1.getMbNo());
-        log.debug("changed mbPassword:{}",dbMemberOptional.get().getMbPassword());
-        Assertions.assertEquals(mbPassword,dbMemberOptional.get().getMbPassword());
     }
 
     @Test
     @DisplayName("회원조회-by-회원번호")
     void findByMbNo() {
-
-        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member1);
-
-        Optional<Member> actualOptional = memberRepository.findByMbNo(member1.getMbNo());
-        Assertions.assertAll(
-                ()->Assertions.assertNotNull(actualOptional.get()),
-                ()->Assertions.assertEquals(member1.getMbNo(), actualOptional.get().getMbNo()),
-                ()->Assertions.assertEquals(member1.getMbEmail(), actualOptional.get().getMbEmail()),
-                ()->Assertions.assertEquals(member1.getMbName(), actualOptional.get().getMbName()),
-                ()->Assertions.assertEquals(member1.getMbPassword(), actualOptional.get().getMbPassword()),
-                ()->Assertions.assertEquals(member1.getMbMobile(), actualOptional.get().getMbMobile()),
-                ()->Assertions.assertNotNull(actualOptional.get().getCreatedAt())
-        );
-
+        // 회원번호로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
     }
 
     @Test
     @DisplayName("회원조회-by-email")
     void findByMbEmail() {
-        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member1);
+        // 이메일로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
 
-        Optional<Member> actualOptional = memberRepository.findByMbNo(member1.getMbNo());
-        Assertions.assertAll(
-                ()->Assertions.assertNotNull(actualOptional.get()),
-                ()->Assertions.assertEquals(member1.getMbNo(), actualOptional.get().getMbNo()),
-                ()->Assertions.assertEquals(member1.getMbEmail(), actualOptional.get().getMbEmail()),
-                ()->Assertions.assertEquals(member1.getMbName(), actualOptional.get().getMbName()),
-                ()->Assertions.assertEquals(member1.getMbPassword(), actualOptional.get().getMbPassword()),
-                ()->Assertions.assertEquals(member1.getMbMobile(), actualOptional.get().getMbMobile()),
-                ()->Assertions.assertNotNull(actualOptional.get().getCreatedAt())
-        );
     }
 
     @Test
     @DisplayName("회원조회-by-mobile")
     void findByMbMobile() {
-        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member1);
+        // 모바일 번호로 조회한 회원의 정보가 데이터베이스에서 정확히 반환되는지 확인
 
-        Optional<Member> actualOptional = memberRepository.findByMbMobile(member1.getMbMobile());
-
-        Assertions.assertAll(
-                ()->Assertions.assertNotNull(actualOptional.get()),
-                ()->Assertions.assertEquals(member1.getMbNo(), actualOptional.get().getMbNo()),
-                ()->Assertions.assertEquals(member1.getMbEmail(), actualOptional.get().getMbEmail()),
-                ()->Assertions.assertEquals(member1.getMbName(), actualOptional.get().getMbName()),
-                ()->Assertions.assertEquals(member1.getMbPassword(), actualOptional.get().getMbPassword()),
-                ()->Assertions.assertEquals(member1.getMbMobile(), actualOptional.get().getMbMobile()),
-                ()->Assertions.assertNotNull(actualOptional.get().getCreatedAt())
-        );
     }
 
     @Test
-    @DisplayName("회원번호로 회원존제여부 : true")
+    @DisplayName("회원번호로 회원존재여부 : true")
     void existsByMbNo() {
-        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member1);
+        // 회원번호로 조회 시 해당 회원이 존재하는지 확인
 
-        boolean actual = memberRepository.existsByMbNo(member1.getMbNo());
-        assertTrue(actual);
     }
+
     @Test
-    @DisplayName("회원번호로 회원존제여부 : false")
+    @DisplayName("회원번호로 회원존재여부 : false")
     void notExistsByMbNo() {
-        boolean actual = memberRepository.existsByMbNo(1l);
-        assertFalse(actual);
-    }
+        // 존재하지 않는 회원번호로 조회 시 회원이 존재하지 않음을 확인
 
+    }
 
     @Test
     @DisplayName("회원존재여부-by-email : true")
     void existsByMbEmail() {
-        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member1);
+        // 이메일로 조회 시 해당 회원이 존재하는지 확인
 
-        boolean actual = memberRepository.existsByMbEmail(member1.getMbEmail());
-        assertTrue(actual);
     }
 
     @Test
     @DisplayName("회원존재여부-by-email : false")
     void notExistsByMbEmail() {
-        boolean actual = memberRepository.existsByMbEmail("something@email.com");
-        assertFalse(actual);
+        // 존재하지 않는 이메일로 조회 시 회원이 존재하지 않음을 검증
+
     }
 
     @Test
     @DisplayName("회원존재여부-by-mobile : true")
     void existsByMbMobile() {
-        Member member = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member);
-        log.debug("member1: {}", member);
-        boolean actual = memberRepository.existsByMbMobile(member.getMbMobile());
-        assertTrue(actual);
+        // 모바일 번호로 조회 시 해당 회원이 존재하는지 확인
+
     }
+
     @Test
     @DisplayName("회원존재여부-by-mobile : false")
     void notExistsByMbMobile() {
-        boolean actual = memberRepository.existsByMbMobile("01012345678");
-        assertFalse(actual);
+        // 존재하지 않는 모바일 번호로 조회 시 회원이 존재하지 않음을 검증
+
     }
 
     @Test
     @DisplayName("회원 탈퇴여부: true")
     void isMemberWithdrawn_true(){
-        Member member = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member);
-        memberRepository.updateWithdrawalAt(member.getMbNo(),LocalDateTime.now());
+        // 회원이 탈퇴 후, 탈퇴 상태가 정상적으로 반영되었는지 확인
 
-        boolean actual = memberRepository.isMemberWithdrawn(member.getMbNo());
-        assertTrue(actual);
     }
 
     @Test
     @DisplayName("회원 탈퇴여부: false")
     void isMemberWithdrawn_false(){
-        Member member = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member);
+        // 탈퇴되지 않은 회원 상태가 정상적으로 반영되었는지 확인
 
-        boolean actual = memberRepository.isMemberWithdrawn(member.getMbNo());
-        assertFalse(actual);
     }
 
     @Test
     @DisplayName("회원탈퇴:탈퇴일자 수정")
     void updateWithdrawalAt() {
-        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
-        memberRepository.save(member1);
-        log.debug("탈퇴전 : member:{}",member1.getWithdrawalAt());
+        // 탈퇴일자가 변경된 후, 변경된 일자가 데이터베이스에 정확히 반영되는지 확인
 
-        memberRepository.updateWithdrawalAt(member1.getMbNo(), LocalDateTime.now());
-
-        Member dbMember = memberRepository.findByMbNo(member1.getMbNo()).orElse(null);
-        Assertions.assertNotNull(dbMember.getMbNo());
-        log.debug("탈퇴 후 : member:{}",dbMember.getWithdrawalAt());
     }
 }

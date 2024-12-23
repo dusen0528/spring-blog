@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * TODO#2-1 @Component
+ * 1 @Component
  * 모든 Stereotype의 기본이 되는 Annotation
  */
 @Retention(value = RetentionPolicy.RUNTIME)

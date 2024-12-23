@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * TODO#4 데이터베이스 관련된 환경설정을(/resources/db.properties) 읽어서  객체(DbProperties)를 생성 후
+ * 4 데이터베이스 관련된 환경설정을(/resources/db.properties) 읽어서  객체(DbProperties)를 생성 후
  * Context에 bean으로 등록하는 Initializeable interface의 구현체 입니다.
  * @InitOrder(value = 1)임으로 ApplicationContext가 초기화 될 때 가장 처음으로 호출 됩니다.
  * InitDbPropertiesReader를 구현하세요.
@@ -26,13 +26,13 @@ public class InitDbPropertiesReader implements Initializeable {
     private final String dbPropertiesFile;
 
     public InitDbPropertiesReader(){
-        //TODO#4-1 기본 데이터베이스 환경설정 파일명(DEFAULT_DB_PROPERTIES_FILE)을 사용해서 생성자를 호출 합니다.
+        //1 기본 데이터베이스 환경설정 파일명(DEFAULT_DB_PROPERTIES_FILE)을 사용해서 생성자를 호출 합니다.
         this(DEFAULT_DB_PROPERTIES_FILE);
     }
 
     //데이터베이스 환경설정 기본 파일(DEFAULT_DB_PROPERTIES_FILE)을 사용하지 않고 직접 파일명을 입력받아 생성할 수 있는 생성자 입니다.
     public InitDbPropertiesReader(String dbPropertiesFile) {
-        //TODO#4-2 dbPropertiesFile null or "" 이면  IllegalArgumentException이 발생 합니다.
+        //2 dbPropertiesFile null or "" 이면  IllegalArgumentException이 발생 합니다.
         if(dbPropertiesFile == null || dbPropertiesFile.isBlank()) {
             throw new IllegalArgumentException(String.format("%s cannot be null or empty", dbPropertiesFile));
         }
@@ -54,14 +54,14 @@ public class InitDbPropertiesReader implements Initializeable {
          * 아라 코드의 흐름에 따라서 해당 private method를 구현 합니다.
          */
 
-        //TODO#4-3 readProperties() method를 호출 합니다.
+        //3 readProperties() method를 호출 합니다.
         Properties properties = readProperties();
 
-       //TODO#4-4 createDbProperties() 메서드를 호출하여 DbProperties객체를 생성 합니다.
+       //4 createDbProperties() 메서드를 호출하여 DbProperties객체를 생성 합니다.
         DbProperties dbProperties = createDbProperties(properties);
 
         log.debug("context:{}",context);
-        //TODO#4-5 context에 registerBean() method를 이용해서 다음고 같은 형태로 bean을 등록 합니다.
+        //5 context에 registerBean() method를 이용해서 다음고 같은 형태로 bean을 등록 합니다.
         // beanName = DbProperties.BEAN_NAME, Object = dbProperties
         context.registerBean(DbProperties.BEAN_NAME,dbProperties);
     }

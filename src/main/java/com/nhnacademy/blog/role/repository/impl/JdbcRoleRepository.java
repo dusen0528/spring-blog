@@ -10,117 +10,39 @@ import com.nhnacademy.blog.role.repository.RoleRepository;
 import java.sql.*;
 import java.util.Optional;
 
+//TODO#2- @Repository 작성하세요.
 @Repository(JdbcRoleRepository.BEAN_NAME)
 public class JdbcRoleRepository implements RoleRepository {
-    public static final String BEAN_NAME = "jdbcRoleRepository";
+    public static final String BEAN_NAME = "changeMe";
 
     @Override
     public void save(Role role) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    insert into roles (
-                        role_id,
-                        role_name,
-                        role_description
-                    )
-                    values(?,?,?);
-                """;
-
-        try ( PreparedStatement psmt = connection.prepareStatement(sql)){
-            int index=1;
-            psmt.setString(index++, role.getRoleId());
-            psmt.setString(index++, role.getRoleName());
-            psmt.setString(index++, role.getRoleDescription());
-            psmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        // TODO#2-1: 역할 정보를 데이터베이스에 저장하기 위한 SQL 쿼리 작성
     }
 
     @Override
     public void update(RoleUpdateRequestDto roleUpdateRequestDto) {
-
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    update roles set 
-                        role_name=?,
-                        role_description=? 
-                     where 
-                         role_id=?;
-                """;
-
-        try ( PreparedStatement psmt = connection.prepareStatement(sql)){
-            int index=1;
-            psmt.setString(index++, roleUpdateRequestDto.getRoleName());
-            psmt.setString(index++, roleUpdateRequestDto.getRoleDescription());
-            psmt.setString(index++, roleUpdateRequestDto.getRoleId());
-            psmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-
+        // TODO#2-2: roleUpdateRequestDto 객체를 사용하여 업데이트할 SQL 쿼리와 PreparedStatement 작성
+        // 필요한 경우, roleUpdateRequestDto의 데이터를 PreparedStatement에 설정하세요.
     }
 
     @Override
     public void deleteByRoleId(String roleId) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                    delete from roles where role_id=?
-                """;
-
-        try ( PreparedStatement psmt = connection.prepareStatement(sql)){
-            int index=1;
-            psmt.setString(index++, roleId);
-            psmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
+        // TODO#2-3: roleId를 사용하여 역할을 삭제하는 SQL 쿼리 작성
+        // 필요한 경우, roleId를 PreparedStatement에 설정하세요.
     }
 
     @Override
     public Optional<Role> findByRoleId(String roleId) {
-
-        Connection connection = DbConnectionThreadLocal.getConnection();
-
-        String sql = """
-                select role_id,role_name,role_description from roles where role_id=?
-            """;
-
-        try(PreparedStatement psmt = connection.prepareStatement(sql);) {
-            psmt.setString(1, roleId);
-            try(ResultSet rs = psmt.executeQuery()) {
-                while (rs.next()) {
-                    String dbRoleId = rs.getString(1);
-                    String dbRoleName = rs.getString(2);
-                    String dbRoleDescription = rs.getString(3);
-                    return Optional.of(new Role(dbRoleId, dbRoleName, dbRoleDescription));
-                }
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-        return Optional.empty();
+        // TODO#2-4: roleId를 사용하여 역할을 조회하는 SQL 쿼리 작성
+        // SQL 결과를 Role 객체로 변환하고 Optional로 반환하세요.
+        return Optional.empty(); // 빈 Optional을 반환하는 기본 구현
     }
 
     @Override
     public boolean existsByRoleId(String roleId) {
-        Connection connection = DbConnectionThreadLocal.getConnection();
-        String sql = """
-                    select 1 from roles where role_id=?
-                """;
-        try(PreparedStatement psmt = connection.prepareStatement(sql);) {
-            psmt.setString(1, roleId);
-            try(ResultSet rs = psmt.executeQuery()) {
-                if(rs.next()) {
-                    return true;
-                }
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        }
-        return false;
+        // TODO#2-5: roleId로 역할이 존재하는지 확인하는 SQL 쿼리 작성
+        // SQL 결과에 따라 true 또는 false를 반환하세요.
+        return false; // 기본 구현으로 false 반환
     }
 }

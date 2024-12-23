@@ -12,7 +12,7 @@
 
 package com.nhnacademy.blog.common.context;
 
-//TODO#1-8 Context에 접근할 수 있도록 ContextHolder를 Singleton 구현 합니다.
+//8 Context에 접근할 수 있도록 ContextHolder를 Singleton 구현 합니다.
 public class ContextHolder {
 
     //ApplicationContext를 초기화 합니다.
