@@ -120,3 +120,34 @@ IoC는 객체 생성과 의존성 관리를 외부 컨테이너나 프레임워�
     - 객체 생명주기를 체계적으로 관리하여 메모리 누수를 방지하고 성능을 최적화합니다.
 
 ---
+
+# Spring Framework의 핵심 개념
+
+## Bean (빈)
+
+Bean은 Spring IoC 컨테이너가 관리하는 객체입니다. 컨테이너는 Bean의 생성, 초기화, 소멸 등 전체 생명주기를 관리합니다.
+
+## Stereotype Annotations
+
+Stereotype Annotations은 특정 역할을 수행하는 Bean을 정의하는 데 사용됩니다. 이를 통해 애플리케이션 컨텍스트에서 자동으로 Bean을 검색하고 등록할 수 있습니다.
+
+-   **@Component**: 일반적인 Bean을 나타냅니다.
+-   **@Repository**: 데이터 접근 계층의 Bean을 나타내며, 데이터베이스 예외를 Spring의 통합된 예외로 변환합니다.
+-   **@Service**: 비즈니스 로직을 구현하는 서비스 계층의 Bean을 나타냅니다.
+-   **@Controller**: 웹 요청을 처리하는 프레젠테이션 계층의 Bean을 나타냅니다.
+
+모든 Stereotype Bean은 기본적으로 Singleton 객체로 생성됩니다.
+
+## @Qualifier
+
+`@Qualifier` 어노테이션은 의존성 주입 시 주입할 특정 Bean을 식별하는 데 사용됩니다.
+
+## @InitOrder
+
+`@InitOrder` 어노테이션은 Bean의 초기화 순서를 지정하는 데 사용됩니다.
+
+## Initializeable Interface
+
+`Initializeable` 인터페이스는 애플리케이션 구동 시 초기화를 위해 제공됩니다. Context가 생성될 때 이 인터페이스를 구현한 Bean의 `initialize` 메서드가 호출됩니다.
+
+이러한 개념들을 활용하여 Spring Framework에서는 의존성 주입, 관점 지향 프로그래밍(AOP), 선언적 트랜잭션 관리 등의 기능을 제공하며, 이를 통해 느슨하게 결합된, 테스트하기 쉬운 애플리케이션을 개발할 수 있습니다.

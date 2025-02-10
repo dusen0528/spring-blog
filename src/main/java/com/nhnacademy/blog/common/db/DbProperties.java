@@ -7,7 +7,7 @@ public class DbProperties {
      */
 
     //기본 BEAN_NAME을 설정 합니다.
-    public static final String BEAN_NAME="changeMe";
+    public static final String BEAN_NAME="dbProperties";
 
     private final String url;
     private final String username;
@@ -23,30 +23,98 @@ public class DbProperties {
     private final boolean testOnBorrow;
     private final boolean spy;
 
+    public DbProperties(String url, String username, String password){
+        this.url = url;
+        this.username = username;
+        this.password = password;
+        this.initialSize = 5;
+        this.maxTotal = 5;
+        this.maxIdle = 5;
+        this.minIdle = 5;
+        this.maxWait = 5;
+        this.validationQuery = "SELECT 1";
+        this.testOnBorrow = true;
+        this.spy = true;
+    }
+
     public DbProperties(String url, String username, String password, int initialSize, int maxTotal, int maxIdle, int minIdle, int maxWait, String validationQuery, boolean testOnBorrow, boolean spy) {
         //생성자를 구현하세요.
 
-        this.url = null;
-        this.username = null;
-        this.password = null;
-        this.initialSize = 0;
-        this.maxTotal = 0;
-        this.maxIdle = 0;
-        this.minIdle = 0;
-        this.maxWait = 0;
-        this.validationQuery = "";
-        this.testOnBorrow = false;
-        this.spy = false;
+        this.url = url;
+        this.username = username;
+        this.password = password;
+        this.initialSize = initialSize;
+        this.maxTotal = maxTotal;
+        this.maxIdle = maxIdle;
+        this.minIdle = minIdle;
+        this.maxWait = maxWait;
+        this.validationQuery = "SELECT 1";
+        this.testOnBorrow = true;
+        this.spy = true;
     }
 
-    /*Getter method를 작성합니다.Setter 메서드는 작성하지 않습니다.
-     - 예시)url에 대한 Getter 메서드 예시 입니다.
-    */
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public int getInitialSize() {
+        return initialSize;
+    }
+
+    public int getMaxTotal() {
+        return maxTotal;
+    }
+
+    public int getMaxIdle() {
+        return maxIdle;
+    }
+
+    public int getMinIdle() {
+        return minIdle;
+    }
+
+    public int getMaxWait() {
+        return maxWait;
+    }
+
+    public String getValidationQuery() {
+        return validationQuery;
+    }
+
+    public boolean isTestOnBorrow() {
+        return testOnBorrow;
+    }
+
+    public boolean isSpy() {
+        return spy;
+    }
+
     public String getUrl() {
         return url;
     }
 
 
+    @Override
+    public String toString() {
+        return "DbProperties{" +
+                "url='" + url + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", initialSize=" + initialSize +
+                ", maxTotal=" + maxTotal +
+                ", maxIdle=" + maxIdle +
+                ", minIdle=" + minIdle +
+                ", maxWait=" + maxWait +
+                ", validationQuery='" + validationQuery + '\'' +
+                ", testOnBorrow=" + testOnBorrow +
+                ", spy=" + spy +
+                '}';
+    }
     //ToString() method를 작성합니다.
 
 }

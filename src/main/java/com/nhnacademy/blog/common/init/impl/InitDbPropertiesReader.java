@@ -6,6 +6,7 @@ import com.nhnacademy.blog.common.db.DbProperties;
 import com.nhnacademy.blog.common.init.Initializeable;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class InitDbPropertiesReader implements Initializeable {
             throw new IllegalArgumentException(String.format("%s cannot be null or empty", dbPropertiesFile));
         }
         this.dbPropertiesFile = dbPropertiesFile;
+
     }
 
     /**
@@ -68,7 +70,16 @@ public class InitDbPropertiesReader implements Initializeable {
 
     private Properties readProperties(){
         //properties 객체를 초기화 합니다.
-        Properties properties = null;
+        Properties properties = new Properties();
+
+        try(InputStream inputStream = getClass().getClassLoader().getResourceAsStream(dbPropertiesFile)){
+            if(inputStream==null){
+                throw new IllegalArgumentException("Db properties file not found"+dbPropertiesFile);
+            }
+            properties.load(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         return properties;
     }
@@ -82,9 +93,14 @@ public class InitDbPropertiesReader implements Initializeable {
     private DbProperties createDbProperties(Properties properties) {
 
         String url = properties.getProperty("url");
+        String username = properties.getProperty("username");
+        String password = properties.getProperty("password");
 
+        if(url==null || username==null|| password==null){
+            throw new IllegalArgumentException("Db properties is null");
+        }
 
-        DbProperties dbProperties = null;
+        DbProperties dbProperties = new DbProperties(url, username, password);
         log.debug("dbProperties: {}", dbProperties);
 
         return dbProperties;
