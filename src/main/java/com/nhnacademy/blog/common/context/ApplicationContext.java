@@ -18,7 +18,8 @@ public class ApplicationContext  implements Context{
     public ApplicationContext() {
         //TODO#1-2 applicationContext 초기화
         //beanMap을 초기화, initialize() method를 호출 합니다.
-        this.beanMap = null;
+        this.beanMap = new ConcurrentHashMap<>();
+        initialize();
 
     }
 
@@ -28,14 +29,21 @@ public class ApplicationContext  implements Context{
         /*TODO#1-3 Initializeable 구현 class를 scan 한다.
                ReflectionUtils.classScan() method를 이용해서 구현 합니다.
         */
-        List<ClassWrapper<Initializeable>> classWrappers = null;
+        List<ClassWrapper<Initializeable>> classWrappers = ReflectionUtils.classScan("com.nhmacademy.blog",Initializeable.class);
+        ;
 
         for(ClassWrapper<Initializeable> classWrapper : classWrappers){
             log.debug("registering bean : {}", classWrapper.getClazz().getSimpleName());
-
             /* TODO#1-4 classWrappers를 순회하면서 initialize() 메서드를 호출하여 초기화합니다.
              * Exception 발생 시 ReflectionException을 이용하여 처리합니다.
              */
+            classWrapper.getClazz().getSimpleName();
+            try{
+                Initializeable instance = classWrapper.getClazz().getDeclaredConstructor().newInstance();
+                instance.initialize(this);
+            }catch (Exception e){
+                throw new ReflectionException("Failed to init : " + classWrapper.getClazz().getName(), e);
+            }
 
         }
         log.debug("size:{}", classWrappers.size());
