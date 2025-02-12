@@ -1,34 +1,15 @@
-package com.nhnacademy.blog.common.init.impl;
+# Init Component Class
 
-import com.nhnacademy.blog.common.annotation.InitOrder;
-import com.nhnacademy.blog.common.annotation.stereotype.Component;
-import com.nhnacademy.blog.common.annotation.stereotype.Repository;
-import com.nhnacademy.blog.common.annotation.stereotype.Service;
-import com.nhnacademy.blog.common.context.Context;
-import com.nhnacademy.blog.common.init.Initializeable;
-import com.nhnacademy.blog.common.reflection.ClassWrapper;
-import com.nhnacademy.blog.common.reflection.ReflectionUtils;
-import com.nhnacademy.blog.common.reflection.exception.ReflectionException;
-import lombok.Synchronized;
-import lombok.extern.slf4j.Slf4j;
+- 이 클래스는 스프링 프레임워크의 핵심 개념인 IOC(제어의 역전)과 DI(의존성 주입)를 구현
 
-import java.lang.reflect.Constructor;
-import java.util.*;
+## Initialize 메소드
+- 초기화 작업의 전체 프로세스 담당
+1. 어노테이션이 붙은 클래스 스캔
+2. 각 클래스를 역할별 분류
+3. 객체 생성 후 Application Context에 등록
 
-/* TODO#5 Stereotype Bean 생성
- * - Stereotype Bean (@Component, @Service, @Repository) 어노테이션이 포함된 클래스를 스캔하고 해당 클래스를 생성 후 Application Context에 bean으로 등록합니다.
- * - 여기서 Bean이라는 표현은 Application Context에서 관리하는 객체를 의미합니다.
- */
-
-
-@Slf4j
-@InitOrder(value = 4)
-@SuppressWarnings("java:S3740")
-public class InitComponent implements Initializeable {
-
-    @Override
-    public void initialize(Context context) {
-
+### TODO 5-1 클래스 스캔
+```java
         /**
          * TODO#5-1 @Component 어노테이션을 기준으로 'com.nhnacademy.blog' 패키지 하위에 있는 클래스를 스캔합니다.
          * - @Repository, @Service 어노테이션은 @Component 어노테이션을 포함하고 있기 때문에,
@@ -38,9 +19,15 @@ public class InitComponent implements Initializeable {
         List<ClassWrapper> classWrappers =  ReflectionUtils.classScanByAnnotated(
                 "com.nhnacademy.blog", Component.class
         );
+```
+- classScanByAnnotated() 메소드를 이용해 com.nhnacademy.blog 패키지 하위에서 @Component 어노테이션이 붙은 클래스를 스캔
+- 결과적으로 @Component @Repository @Service가 붙은 모든 클래스가 스캔됨
+- 이 과정은 런타임에 수행되며, IoC 컨테이너가 관리할 클래스를 자동으로 식별
 
 
-        /**
+### TODO 5-2 리스트 초기화 
+```java
+ /**
          * TODO#5-2 componentList, serviceList, repositoryList를 초기화합니다.
          * 일반적으로 비즈니스 로직 개발 시 Service에서 Repository를 주입받아 로직을 구현하므로
          * 1. Component -> 2. Repository -> 3. Service 순서로 초기화합니다.
@@ -53,12 +40,15 @@ public class InitComponent implements Initializeable {
 
         //3순위
         List<Class<?>> serviceList = new ArrayList<>();
+```
+- 각각의 리스트는 어노테이션에 따라 분류된 클래스 저장
+- componentList : 일반적인 컴포넌트 클래스
+- repositoryList : 데이터 접근 계층 클래스
+- serviceList : 비즈니스 로직 계층 클래스
 
-
-        for (ClassWrapper<Component> classWrapper : classWrappers) {
-            log.debug("find stereotype class: {}", classWrapper.getClazz().getSimpleName());
-
-            /**
+### TODO 5-3 인터페이스 제외
+```java
+     /**
              * TODO#5-3 classWrapper.getClazz()의 타입이 interface이면 continue;를 호출합니다.
              * - 즉, @Component, @Repository, @Service를 정의한 인터페이스는 제외하려고 합니다.
              */
@@ -66,7 +56,13 @@ public class InitComponent implements Initializeable {
             if(classWrapper.getClazz().isInterface()){
                 continue;
             }
-            /**
+```
+- 인터페이스는 객체를 생성할 수 없기에 제외
+- 왜냐하면 IoC 컨테이너는 구체적인 클래스를 관리해야 하므로 인터페이스는 스캔 결과에서 제외 됨
+
+### TODO 5-4 클래스 분류
+```java
+   /**
              * TODO#5-4 classWrapper.getClazz()를 각각의 어노테이션 조건에 맞게 분리합니다.
              * - @Component를 포함하는 클래스 -> componentList에 담습니다.
              * - @Service를 포함하는 클래스 -> serviceList에 담습니다.
@@ -83,10 +79,13 @@ public class InitComponent implements Initializeable {
             } else if (component != null) {
                 componentList.add(classWrapper.getClazz());
             }
+```
+- 각 클래스가 어떤 어노테이션이 있는지 확인 후 해당 리스트에 추가
+- 어노테이션에 따라 클래스 분리하여 이후 단계에서 순차적으로 처리할 수 있도록 준비
 
-        }//end for
-
-        /**
+### TODO 5-5~5-7 빈 생성 및 등록
+```java
+ /**
          * TODO#5-5 @Component로 선언된 클래스의 인스턴스를 createInstance() 메서드를 이용해서 생성합니다.
          * - @Component Bean 생성 및 등록(1순위)
          * - beanName이 존재하지 않는 경우 classNameToBeanName() 메서드를 호출해서 이름을 설정합니다.
@@ -134,29 +133,36 @@ public class InitComponent implements Initializeable {
         }
 
         //모든 Stereotype Bean이 생성되어 Application Context에 등록되었습니다.
+```
+- 각 리스트에 대해 반복문을 실행
+- 어노테이션 값 확인해서 빈 이름을 결정
+  - 어노테이션에 값이 없으면 클래스 이름을 기반으로 빈 이름 생성
+- 객체 생성 후 ApplicationContext에 등록
+- IoC 컨테이너가 관리할 객체(빈)을 실제로 생성하고 등록하는 단계
 
-    }//end method
+## classNameToBeanName 메소드
+```java
+public static String classNameToBeanName(Class<?> clazz) {
+//TODO#5-8 classNameToBeanName()를 구현 합니다.
+String className = clazz.getSimpleName();
+log.debug("className:{}",className);
+return Character.toLowerCase(className.charAt(0))+className.substring(1);
+}
+```
+- 클래스 이름 기반으로 빈 이름을 생성
+- JAVA 네이밍 컨벤션에 맞춰 빈 이름을 자동으로 생성하기 위함 
 
-    /**
-     * className -> beanName으로 변경
-     * ex)PasswordEncoder -> passwordEncoder, MemberService - > memberService
-     * @param clazz
-     * @return beanName
-     */
-    public static String classNameToBeanName(Class<?> clazz) {
-        //TODO#5-8 classNameToBeanName()를 구현 합니다.
-        String className = clazz.getSimpleName();
-        log.debug("className:{}",className);
-        return Character.toLowerCase(className.charAt(0))+className.substring(1);
-    }
+```
+예시
+입력 : UserService.class
+출력 : "userService"
+ 
+클래스 이름의 첫 글자만 소문자로 바꾸고 나머지는 그대로 유지
+```
 
-    /**
-     * targetClass를 생성해서 context에 등록합니다. 등록시 객체를 식별하기 위해서 beanName을 사용합니다.
-     * @param context
-     * @param targetClass
-     * @param beanName
-     */
-    private void createInstance(Context context, Class targetClass, String beanName) {
+## createInstance 메소드
+```java
+ private void createInstance(Context context, Class targetClass, String beanName) {
 
         // TODO#5-9 객체 생성에 사용할 생성자를 ReflectionUtils.findFirstConstructor() 메서드를 사용하여 구합니다.
         // 이 메서드는 클래스의 첫 번째 생성자를 반환하며, Reflection을 통해 동적으로 객체를 생성하는 데 사용됩니다.
@@ -185,4 +191,10 @@ public class InitComponent implements Initializeable {
             throw new ReflectionException("Failed to create instance of "+targetClass.getName()+e);
         }
     }
-}
+```
+- findFirstConstructor() 메소드를 사용해 대상 클래스의 첫번째 생성자를 찾고
+- 의존성 주입을 위해 어떤 생성자를 사용할지 결정하는 단계
+- ReflectionUtils.getParameterFromContext() 메소드를 사용해 생성자의 파라미터 타입에 맞는 객체를 ApplicationContext에서 가져옴
+- 이를 통해 의존성 주입이 이루어짐
+- constructor.newInstance() 메소드 : Reflection API를 사용해 객체를 동적으로 생성하고
+- context.registerBean()메소드를 사용해 생성된 객체를 ApplicationContext에 등록하여 이를 통해 IoC 컨테이너가 해당 객체를 관리
