@@ -18,24 +18,29 @@ import java.time.Duration;
      - Application Context가 관리하는 객체를 Bean이라고 합니다.
 */
 
+@Component(BlogDataSource.BEAN_NAME)
 public class BlogDataSource {
     //TODO#6-2 BEAN_NAME 변경하세요.
-    public static final String BEAN_NAME="changeMe";
+    public static final String BEAN_NAME="blogDataSource";
 
     private final DbProperties dbProperties;
     private final DataSource dataSource;
 
     public BlogDataSource(
             //todo#6-3 @Qualifier(DbProperties.BEAN_NAME)을 사용하여  DbProperties dbProperties에 Application Context에 등록된 DbProperties.BEAN_NAME 해당되는 Bean을 주입 받습니다.
-            DbProperties dbProperties
+            @Qualifier(DbProperties.BEAN_NAME) DbProperties dbProperties
     ) {
         //TODO#6-4 this.dbProperties를 초기화 합니다.
-        this.dbProperties = null;
+        this.dbProperties = dbProperties;
 
         /*TODO#6-5 dbProperties.isSpy()==true면 createP6SpyDataSource()를 호출 합니다.
            - dbProperties.isSpy()==false면 createDataSource()를 호출 합니다.
          */
-        this.dataSource = null;
+        if(dbProperties.isSpy()==false){
+            this.dataSource = createP6SpyDataSource(createDataSource());
+        }else {
+            this.dataSource = createDataSource();
+        }
     }
 
     private DataSource createDataSource(){
@@ -46,20 +51,27 @@ public class BlogDataSource {
         BasicDataSource basicDataSource = new BasicDataSource();
 
         basicDataSource.setUrl(dbProperties.getUrl());
-        //.. more
-
+        basicDataSource.setUsername(dbProperties.getUsername());
+        basicDataSource.setPassword(dbProperties.getPassword());
+        basicDataSource.setInitialSize(dbProperties.getInitialSize());
+        basicDataSource.setMaxTotal(dbProperties.getMaxTotal());
+        basicDataSource.setMaxIdle(dbProperties.getMaxIdle());
+        basicDataSource.setMinIdle(dbProperties.getMinIdle());
+        basicDataSource.setMaxWaitMillis(dbProperties.getMaxWait());
+        basicDataSource.setValidationQuery(dbProperties.getValidationQuery());
+        basicDataSource.setTestOnBorrow(dbProperties.isTestOnBorrow());
         return basicDataSource;
     }
 
     private DataSource createP6SpyDataSource(DataSource dataSource){
         //TODO#6-7 dataSource를 이용해서 P6DataSource 객체를 생성 합니다.
-        return null;
+        return new P6DataSource(dataSource);
     }
 
     public DataSource getDataSource() {
         //TODO#6-8 dataSource를 반환 합니다.
 
-        return null;
+        return dataSource;
     }
 
 }

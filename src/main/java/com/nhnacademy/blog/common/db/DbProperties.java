@@ -23,20 +23,6 @@ public class DbProperties {
     private final boolean testOnBorrow;
     private final boolean spy;
 
-    public DbProperties(String url, String username, String password){
-        this.url = url;
-        this.username = username;
-        this.password = password;
-        this.initialSize = 5;
-        this.maxTotal = 5;
-        this.maxIdle = 5;
-        this.minIdle = 5;
-        this.maxWait = 5;
-        this.validationQuery = "SELECT 1";
-        this.testOnBorrow = true;
-        this.spy = true;
-    }
-
     public DbProperties(String url, String username, String password, int initialSize, int maxTotal, int maxIdle, int minIdle, int maxWait, String validationQuery, boolean testOnBorrow, boolean spy) {
         //생성자를 구현하세요.
 
@@ -48,9 +34,9 @@ public class DbProperties {
         this.maxIdle = maxIdle;
         this.minIdle = minIdle;
         this.maxWait = maxWait;
-        this.validationQuery = "SELECT 1";
-        this.testOnBorrow = true;
-        this.spy = true;
+        this.validationQuery = validationQuery;
+        this.testOnBorrow = testOnBorrow;
+        this.spy = spy;
     }
 
 
@@ -115,6 +101,5 @@ public class DbProperties {
                 ", spy=" + spy +
                 '}';
     }
-    //ToString() method를 작성합니다.
 
 }

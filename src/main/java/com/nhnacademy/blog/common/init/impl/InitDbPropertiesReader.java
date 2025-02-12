@@ -96,11 +96,33 @@ public class InitDbPropertiesReader implements Initializeable {
         String username = properties.getProperty("username");
         String password = properties.getProperty("password");
 
-        if(url==null || username==null|| password==null){
-            throw new IllegalArgumentException("Db properties is null");
+        if (url == null || username == null || password == null) {
+            throw new IllegalArgumentException("Db properties are missing required fields");
         }
 
-        DbProperties dbProperties = new DbProperties(url, username, password);
+        int initialSize = Integer.parseInt(properties.getProperty("initialSize", "5")); // 기본값 5
+        int maxTotal = Integer.parseInt(properties.getProperty("maxTotal", "5")); // 기본값 5
+        int maxIdle = Integer.parseInt(properties.getProperty("maxIdle", "5")); // 기본값 5
+        int minIdle = Integer.parseInt(properties.getProperty("minIdle", "5")); // 기본값 5
+        int maxWait = Integer.parseInt(properties.getProperty("maxWait", "5")); // 기본값 5
+        String validationQuery = properties.getProperty("validationQuery", "SELECT 1"); // 기본값 SELECT 1
+        boolean testOnBorrow = Boolean.parseBoolean(properties.getProperty("testOnBorrow", "true")); // 기본값 true
+        boolean spy = Boolean.parseBoolean(properties.getProperty("spy", "true")); // 기본값 true
+
+        DbProperties dbProperties = new DbProperties(
+                url,
+                username,
+                password,
+                initialSize,
+                maxTotal,
+                maxIdle,
+                minIdle,
+                maxWait,
+                validationQuery,
+                testOnBorrow,
+                spy
+        );
+
         log.debug("dbProperties: {}", dbProperties);
 
         return dbProperties;

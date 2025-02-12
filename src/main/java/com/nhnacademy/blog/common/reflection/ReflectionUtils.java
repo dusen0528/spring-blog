@@ -39,13 +39,13 @@ public class ReflectionUtils {
          * - 예외처리 : ReflectionException 이 발생합니다.
          */
         try {
-            Field field = target.getClass().getField(fieldName);
+            Field field = target.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
             field.set(target, value);
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
+            throw new ReflectionException(e);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new ReflectionException(e);
         }
 
     }
@@ -164,6 +164,7 @@ public class ReflectionUtils {
 
         //parameters 배열을 생성자의 파라미터 개수 만큼 배열 크기를 초기화 합니다.
         Object[] parameters = new Object[paramCount];
+        Parameter[] parameterTypes = constructor.getParameters();
 
         for (int i=0; i<constructor.getParameterCount(); i++) {
             /**
@@ -198,7 +199,8 @@ public class ReflectionUtils {
              * }
              */
 
-            Parameter parameter = constructor.getParameters()[i];
+
+            Parameter parameter= parameterTypes[i];
 
             //@qulifier annotation에 정의된 beanName을 구합니다.
             Qualifier qualifier = parameter.getAnnotation(Qualifier.class);

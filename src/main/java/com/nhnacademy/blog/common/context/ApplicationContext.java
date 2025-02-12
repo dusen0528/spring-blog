@@ -34,7 +34,7 @@ public class ApplicationContext  implements Context{
         */
 
         // blog 패키지 안에서 특정 인터페이스(Initailizeable)을 구현한 클래스에 대한 정보를 가지고 있음
-        List<ClassWrapper<Initializeable>> classWrappers = ReflectionUtils.classScan("com.nhmacademy.blog",Initializeable.class);
+        List<ClassWrapper<Initializeable>> classWrappers = ReflectionUtils.classScan("com.nhnacademy.blog",Initializeable.class);
         ;
 
         for(ClassWrapper<Initializeable> classWrapper : classWrappers){
