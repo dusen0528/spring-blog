@@ -71,51 +71,219 @@ public class JdbcMemberRepository implements MemberRepository {
     @Override
     public void update(MemberUpdateRequest memberUpdateRequest) {
         // TODO#1-4: 회원 정보를 업데이트하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                UPDATE members SET
+                    mb_name=?,
+                    mb_mobile=?
+                    WHERE mb_no=?
+                """;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setString(1, memberUpdateRequest.getMbName());
+            preparedStatement.setString(2, memberUpdateRequest.getMbMobile());
+            preparedStatement.setLong(3, memberUpdateRequest.getMbNo());
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void deleteByMbNo(long mbNo) {
         // TODO#1-5: mbNo를 통해 회원을 삭제하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                DELETE FROM members WHERE mb_No=?
+                """;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setLong(1, mbNo);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void updatePassword(long mbNo, String mbPassword) {
         // TODO#1-6: 회원의 비밀번호를 업데이트하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                UPDATE members SET mb_password=? WHERE mb_no=?
+                """;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setString(1, mbPassword);
+            preparedStatement.setLong(2, mbNo);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
     public Optional<Member> findByMbNo(long mbNo) {
         // TODO#1-7: mbNo로 회원을 조회하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                SELECT  mb_email,
+                        mb_name,
+                        mb_password,
+                        mb_mobile,
+                        created_at
+                FROM members
+                WHERE mb_no
+                """;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, mbNo);
+            try(ResultSet rs = preparedStatement.executeQuery()){
+                if(rs.next()){
+                    return Optional.of(Member.ofNewMember(
+                            rs.getString("mb_email"),
+                            rs.getString("mb_name"),
+                            rs.getString("mb_password"),
+                            rs.getString("mb_mobile")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         return Optional.empty();
     }
 
     @Override
     public Optional<Member> findByMbEmail(String mbEmail) {
         // TODO#1-8: mbEmail로 회원을 조회하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                        SELECT  mb_email,
+                                mb_name,
+                                mb_password,
+                                mb_mobile,
+                                created_at
+                        FROM members
+                        WHERE mb_email=?
+                        """;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setString(1, mbEmail);
+            try(ResultSet rs = preparedStatement.executeQuery()){
+                if(rs.next()){
+                    return Optional.of(Member.ofNewMember(
+                            rs.getString("mb_email"),
+                            rs.getString("mb_name"),
+                            rs.getString("mb_password"),
+                            rs.getString("mb_mobile")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         return Optional.empty();
     }
 
     @Override
     public Optional<Member> findByMbMobile(String mBMobile) {
-        // TODO#1-9: mbMobile로 회원을 조회하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                        SELECT  mb_email,
+                                mb_name,
+                                mb_password,
+                                mb_mobile,
+                                created_at
+                        FROM members
+                        WHERE mb_mobile=?
+                        """;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setString(1, mBMobile);
+            try(ResultSet rs = preparedStatement.executeQuery()){
+                if(rs.next()){
+                    return Optional.of(Member.ofNewMember(
+                            rs.getString("mb_email"),
+                            rs.getString("mb_name"),
+                            rs.getString("mb_password"),
+                            rs.getString("mb_mobile")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         return Optional.empty();
     }
 
     @Override
     public boolean existsByMbNo(long mbNo) {
         // TODO#1-10: mbNo로 회원 존재 여부를 확인하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                SELECT COUNT()
+                FROM members
+                WHERE mb_no=? 
+                """;
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, mbNo);
+            try(ResultSet rs = preparedStatement.executeQuery()){
+                if(rs.next()){
+                    return rs.getInt(1)>0;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         return false;
     }
 
     @Override
     public boolean existsByMbEmail(String mbEmail) {
         // TODO#1-11: mbEmail로 회원 존재 여부를 확인하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                SELECT COUNT()
+                FROM members
+                WHERE mb_email=? 
+                """;
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, mbEmail);
+            try(ResultSet rs = preparedStatement.executeQuery()){
+                if(rs.next()){
+                    return rs.getInt(1)>0;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return false;
     }
 
     @Override
     public boolean existsByMbMobile(String mbMobile) {
         // TODO#1-12: mbMobile로 회원 존재 여부를 확인하는 기능을 구현하세요.
+        Connection connection = DbConnectionThreadLocal.getConnection();
+        String sql = """
+                SELECT COUNT()
+                FROM members
+                WHERE mb_mobile=? 
+                """;
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, mbMobile);
+            try(ResultSet rs = preparedStatement.executeQuery()){
+                if(rs.next()){
+                    return rs.getInt(1)>0;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return false;
     }
 
