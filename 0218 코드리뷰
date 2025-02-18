@@ -1,0 +1,1707 @@
+# 2/18
+
+```java
+  <!--TODO#1-1 Spring관련 의존성 추가
+              - spring-core - 핵심코어
+              - spring-context - Application Context
+              - spring-tx - 트랜잭션 처리
+              - spring-jdbc - JdbcTemplate
+              - spring-test - 테스트
+        -->
+```
+
+- Servlet 애플리케이션을 스프링으로 구현할 때 최소한 필요한 의존성 5개
+
+```java
+   <!-- @MockitoExtension 사용하기 위해서 -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.12.0</version>
+            <scope>test</scope>
+        </dependency>
+```
+
+- mockitoExtension 테스트에서 사용
+
+예를 추가해두면 Assertions 등도 자동으로 추가됨 포함되어 있기 때문
+
+```java
+/*
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ * + Copyright 2024. NHN Academy Corp. All rights reserved.
+ * + * While every precaution has been taken in the preparation of this resource,  assumes no
+ * + responsibility for errors or omissions, or for damages resulting from the use of the information
+ * + contained herein
+ * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
+ * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
+ * + prior written permission.
+ * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ */
+
+package com.nhnacademy.blog.common.context;
+
+import com.nhnacademy.blog.common.config.ApplicationConfig;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+/**
+ * ContextHolder 클래스는 애플리케이션 전역에서 사용할 수 있는
+ * Spring ApplicationContext를 관리합니다.
+ *
+ * - 애플리케이션 컨텍스트는 AnnotationConfigApplicationContext를 기반으로 생성됩니다.
+ * - ApplicationConfig.class를 설정으로 사용하여 초기화됩니다.
+ * - 이 클래스는 인스턴스화(객체 생성)를 허용하지 않으며, 전역적으로 하나의 컨텍스트만 사용되도록 설계되었습니다.
+ */
+public class ContextHolder {
+
+    /**
+     * TODO#1-2 ApplicationContext를 정적으로 초기화합니다.
+     * - AnnotationConfigApplicationContext를 사용하여 애플리케이션 컨텍스트를 생성합니다.
+     * - ApplicationConfig.class를 설정으로 사용합니다.
+     * - 초기화 시점에 클래스가 로드될 때 애플리케이션 컨텍스트가 생성됩니다.
+     */
+    private static final ApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfig.class);
+
+    /**
+     * ContextHolder 클래스의 기본 생성자.
+     * - 이 클래스는 인스턴스화가 금지되어 있습니다.
+     * - new ContextHolder()를 호출하려고 하면 IllegalStateException 예외를 발생시킵니다.
+     */
+    private ContextHolder() {
+        throw new IllegalStateException("ContextHolder should not be instantiated");
+    }
+
+    /**
+     * 애플리케이션 컨텍스트를 반환합니다.
+     * - 동기화를 통해 안전하게 컨텍스트를 반환합니다.
+     *
+     * @return ApplicationContext 애플리케이션 전역 컨텍스트
+     */
+    public static synchronized ApplicationContext getApplicationContext() {
+        return context;
+    }
+}
+
+```
+
+- BEAN : 재사용 가능한 JAVA 객체
+- 객체들을 애플리케이션 컨텍스트에 등록 후 필요할 때 마다 가져다 쓰는 환경
+- 스프링에서 ApplicationContext 구현체가 여러가지가 있는데 기본적으로 AnnotationConfigApplicationContext 클래스 사용
+
+```java
+    private static final ApplicationContext context = new AnnotationConfigApplicationContext();
+
+```
+
+- 이 객체를 생성하자마자
+- 컴포넌트 어노테이션 포함중인 @Repository, @Service 등을 스캔
+- 단 어떤 기준인지 모르기에 파라미터로 ApplicationConfig.class
+    - 어노테이션 기반 환경 설정을 하겠다는 의미
+
+```java
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
+
+package org.springframework.context;
+
+import org.springframework.beans.factory.HierarchicalBeanFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.core.env.EnvironmentCapable;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.lang.Nullable;
+
+public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory, HierarchicalBeanFactory, MessageSource, ApplicationEventPublisher, ResourcePatternResolver {
+    @Nullable
+    String getId();
+
+    String getApplicationName();
+
+    String getDisplayName();
+
+    long getStartupDate();
+
+    @Nullable
+    ApplicationContext getParent();
+
+    AutowireCapableBeanFactory getAutowireCapableBeanFactory() throws IllegalStateException;
+}
+```
+
+`*특정 애노테이션(@Component, @Service, @Repository, @Controller*`
+
+등을 컨텍스트에 등록해서 빈으로 저장
+
+```java
+package com.nhnacademy.blog;
+
+/**
+ * TODO#1-4 Root Package Marker interface
+ *
+ * 마커 인터페이스는 메소드나 상수가 없는 인터페이스입니다.
+ * 이 인터페이스는 클래스가 특정 속성이나 행동을 가지고 있음을 나타내기 위해 사용됩니다.
+ * 이 경우, `RootPackageBase` 인터페이스는 애플리케이션의 루트 패키지에 속하는 클래스를 식별하기 위한 마커 역할을 합니다.
+ * 마커 인터페이스는 주로 메타데이터를 제공하거나 애플리케이션의 특정 부분에서 특별한 처리를 적용할 때 사용됩니다.
+ */
+public interface RootPackageBase {
+}
+
+```
+
+```java
+
+@ComponentScan(basePackageClasses = RootPackageBase.class)
+
+public class ApplicationConfig {
+}
+
+```
+
+- RootPackageBase 인터페이스가 구현되어있는 경로부터 스캔
+- RootPackageBase가 없다면
+
+```java
+
+//@ComponentScan(basePackageClasses = RootPackageBase.class)
+@ComponentScan(basePackages = {"com.nhnacademy.blog"})
+```
+
+- 이와같이 작성해도 동일하게 동작
+
+<aside>
+💡
+
+**두가지 방식의  차이점은?**
+
+저렇게 텍스트로 하면 오타가 날 수 있다 . . .
+
+그래서 클래스 기반으로 명확히 지정해줌
+
+</aside>
+
+RootBasePackage 처럼 아무 기능도 없이 명시적으로 선언만 한 인터페이스를 마커인터페이스라고 함
+
+## DataSourceConfig
+
+```java
+package com.nhnacademy.blog.common.config;
+
+import com.nhnacademy.blog.common.db.DbProperties;
+import com.p6spy.engine.spy.P6DataSource;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.dbcp2.BasicDataSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.time.Duration;
+
+import org.apache.commons.dbcp2.BasicDataSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.time.Duration;
+
+/**
+ * TODO#1-5 DataSource Bean 생성
+ *
+ * 이 클래스는 데이터베이스 연결에 필요한 DataSource를 설정하는 클래스입니다.
+ * Spring의 @Configuration 어노테이션을 사용하여 Spring IoC 컨테이너에 설정 정보를 제공하며,
+ * @Bean 어노테이션을 사용하여 DataSource 빈을 생성하고 이를 Spring 컨테이너에 등록합니다.
+ *
+ * @Configuration:
+ * - 이 어노테이션은 해당 클래스가 "설정 클래스"임을 나타냅니다.
+ * - 설정 클래스는 Spring IoC 컨테이너에 빈을 정의하는 데 사용됩니다.
+ * - 이 어노테이션이 붙은 클래스는 Spring 컨테이너에 의해 자동으로 관리되며,
+ *   이 클래스 내부에서 정의된 @Bean 메소드들은 Spring 컨테이너에 빈으로 등록됩니다.
+ * - @Configuration을 사용하면 해당 클래스는 애플리케이션의 설정을 포함하는 역할을 하며,
+ *   다른 클래스에서 필요한 빈을 생성하거나, 설정 값을 주입하는 등의 작업을 수행합니다.
+ *
+ * 예를 들어, @Configuration을 통해 데이터베이스 연결 설정을 포함한 DataSource 빈을 정의하거나,
+ * 서비스, 레포지토리, 엔티티 등의 다른 빈들을 설정하는 데 사용될 수 있습니다.
+ */
+
+@Slf4j
+@Configuration
+public class DataSourceConfig {
+
+    /**
+     * @Bean 어노테이션은 해당 메소드가 반환하는 객체를 Spring의 빈(Bean)으로 등록하겠다는 의미입니다.
+     * 이 메소드에서는 DataSource를 생성하고, 필요한 설정을 적용하여 반환합니다.
+     * DataSource는 데이터베이스와의 연결을 관리하는 객체로, 애플리케이션에서 DB에 접근하는 데 사용됩니다.
+     *
+     * @param dbProperties 데이터베이스 관련 속성값을 담고 있는 DbProperties 객체
+     *                    이 객체는 Spring에서 자동으로 주입됩니다.
+     *                    DbProperties가 빈으로 등록되어 있기 때문에 별도로 설정하지 않아도
+     *                    자동으로 Spring 컨테이너가 주입합니다.
+     *                    DbProperties 클래스에는 @ConfigurationProperties 또는 @Component 등의 어노테이션이 붙어 있어
+     *                    Spring IoC 컨테이너에 의해 관리되며, DataSourceConfig에서 자동으로 주입됩니다.
+     * @return 설정된 DataSource 객체
+     */
+    @Bean("dataSource")
+    public DataSource dataSource(DbProperties dbProperties){
+        log.debug("datasource-dbProperties: {}", dbProperties);
+
+        // 기본적인 데이터소스 설정
+        BasicDataSource basicDataSource = new BasicDataSource();
+        basicDataSource.setUrl(dbProperties.getUrl());
+        basicDataSource.setUsername(dbProperties.getUsername());
+        basicDataSource.setPassword(dbProperties.getPassword());
+
+        basicDataSource.setInitialSize(dbProperties.getInitialSize());
+        basicDataSource.setMaxTotal(dbProperties.getMaxTotal());
+        basicDataSource.setMaxIdle(dbProperties.getMaxIdle());
+        basicDataSource.setMinIdle(dbProperties.getMinIdle());
+
+        basicDataSource.setMaxWait(Duration.ofSeconds(dbProperties.getMaxWait()));
+        basicDataSource.setValidationQuery(dbProperties.getValidationQuery());
+        basicDataSource.setTestOnBorrow(dbProperties.isTestOnBorrow());
+        basicDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+
+        // Spy 기능 활성화 여부에 따라 P6Spy 데이터소스 적용
+        return dbProperties.isSpy() ? createP6SpyDataSource(basicDataSource) : basicDataSource;
+    }
+
+    /**
+     * P6Spy를 사용하여 SQL 쿼리 로그를 기록할 수 있는 DataSource를 생성합니다.
+     * @param dataSource 기존의 DataSource
+     * @return P6Spy를 적용한 DataSource
+     */
+    private DataSource createP6SpyDataSource(DataSource dataSource){
+        return new P6DataSource(dataSource);
+    }
+
+}
+
+```
+
+- Connection Pool 역할
+
+**@Configuration** 
+
+- @Component 어노테이션이 붙어있기 때문에 스캔을 통해 빈으로 저장하는 객체
+- 이걸 빼고 그냥 @Component 써도 되는데 차이점이 존재
+- 클래스에 바로 컴포넌트를 붙여주면 DataSourceConfig 자체가 BEAN이 되어버림
+- 하지만 밑에 @Bean 을 달아놓는 메소드가 있다면?
+- 해당 메소드 호출 후 응답되는 객체가 BEAN이 된다
+- 즉 클래스 자체를 빈으로 만드는 것이 아닌 메소드에서 리턴해주는 값을 빈으로 만들겠다는 목적이 @Bean 어노테이션을 가지고 있는 메소드
+    - DBCP2를 빈으로 만들겠다
+- DbProperties 클래스로 들어가보면 @PropertySource(”classpath:db.properties”) 이 파일을 읽어주는 역할을 하는 것을 확인할 수 있다
+
+```java
+
+    @Value("${db.url}")
+    private String url; // 데이터베이스 URL
+    @Value("${db.username}")
+    private String username; // 데이터베이스 사용자명
+    @Value("${db.password}")
+    private String password; // 데이터베이스 비밀번호
+```
+
+어노테이션 클릭해보면 해당 파일의 해당 값으로 이동한다
+
+원래라면 파일을 Input스트림으로 읽고 프로퍼티 객체로 만들어 빈으로 등록했지만, @value 어노테이션을 이용해서 쉽게 끝났음
+
+즉 @PropertySource 어노테이션을 쓰면 파라미터 경로에 있느 파일을 읽어버리고 @Value를 통해서 값을 할당
+
+@Configuration은 @Component 어노테이션이 있기에 빈으로 만들어짐
+
+DbProperties는 환경설정이기 때문에 @Component도 되지만 @Configuration으로 써주는 거임
+
+즉 이 시점에 빈에 등록되어 있는데..
+
+DataSourceConfig 파일로 다시 넘어와서
+
+```java
+@Bean("dataSource")
+    public DataSource dataSource(DbProperties dbProperties){
+        log.debug("datasource-dbProperties: {}", dbProperties);
+
+        // 기본적인 데이터소스 설정
+        BasicDataSource basicDataSource = new BasicDataSource();
+        basicDataSource.setUrl(dbProperties.getUrl());
+        basicDataSource.setUsername(dbProperties.getUsername());
+        basicDataSource.setPassword(dbProperties.getPassword());
+
+        basicDataSource.setInitialSize(dbProperties.getInitialSize());
+        basicDataSource.setMaxTotal(dbProperties.getMaxTotal());
+        basicDataSource.setMaxIdle(dbProperties.getMaxIdle());
+        basicDataSource.setMinIdle(dbProperties.getMinIdle());
+
+        basicDataSource.setMaxWait(Duration.ofSeconds(dbProperties.getMaxWait()));
+        basicDataSource.setValidationQuery(dbProperties.getValidationQuery());
+        basicDataSource.setTestOnBorrow(dbProperties.isTestOnBorrow());
+        basicDataSource.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+
+        // Spy 기능 활성화 여부에 따라 P6Spy 데이터소스 적용
+        return dbProperties.isSpy() ? createP6SpyDataSource(basicDataSource) : basicDataSource;
+    }
+
+```
+
+1. 스프링은 먼저 빈을 만들 때 Dbproperties를 알아서 빈에 등록해준다 (스프링 빈들간 의존관계를 고려해서 생성)
+    - 프레임워크만들때는 @Component → @Repository → @Service를 순서 직접 정해줬음
+2. 즉 환경 설정 어노테이션만 잘 붙여주면 개발자가 신경쓸 필요없이 알아서 써줌
+
+```java
+@Configuration
+public class DataSourceConfig {
+
+```
+
+- 이렇게 @Configuration이 붙어있어야지 메소드만 BEAN으로 등록이 가능
+
+> 결론 @Configuration 태그를 붙여서 메소드 레벨의 빈을 만들어줄 수 있다. 환경설정시 붙여주기
+> 
+
+---
+
+## TODO 1-8 Transacation
+
+오류 발생시 rollback
+
+sql 오류 없으면 커밋 하는 방식으로 트랜잭션 처리했다
+
+즉 적절한 시점을 개발자가 직접해줬었따면
+
+```java
+package com.nhnacademy.blog.common.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.sql.DataSource;
+
+/**
+ * TODO#1-8 Transaction 관리
+ *
+ * 이 클래스는 데이터베이스의 트랜잭션 관리를 설정합니다.
+ * @Configuration: 해당 클래스가 스프링의 설정 클래스임을 나타냅니다.
+ * @EnableTransactionManagement: 트랜잭션 관리를 활성화하고, 트랜잭션 관련 어노테이션(@Transactional)을 사용할 수 있게 합니다.
+ * 트랜잭션 관리는 데이터베이스 작업의 일관성을 보장하기 위해 필요하며, 데이터베이스 연산 중 문제가 발생했을 때 롤백할 수 있도록 도와줍니다.
+ */
+@Configuration
+@EnableTransactionManagement // 트랜잭션 관리 기능을 활성화하는 어노테이션
+public class TransactionConfig {
+
+    /**
+     * 트랜잭션 매니저를 설정하는 메서드입니다.
+     * DataSource를 사용하여 DataSourceTransactionManager를 생성하여 반환합니다.
+     * DataSourceTransactionManager는 JDBC 데이터베이스 트랜잭션을 관리하는 구현체입니다.
+     * @param dataSource 데이터베이스 연결 정보를 담고 있는 DataSource 객체
+     * @return PlatformTransactionManager 객체
+     *
+     * PlatformTransactionManager는 스프링의 트랜잭션 관리 인터페이스로,
+     * 여러 트랜잭션 매니저 구현체가 이 인터페이스를 구현하여 사용됩니다.
+     * DataSourceTransactionManager는 JDBC 트랜잭션을 처리할 때 사용하는 구현체입니다.
+     *
+     * 트랜잭션 매니저는 트랜잭션을 시작, 커밋, 롤백하는 책임을 담당합니다.
+     * 즉, 데이터베이스의 트랜잭션을 관리하여, 여러 개의 데이터베이스 작업을 하나의 트랜잭션으로 묶고,
+     * 모든 작업이 성공적으로 완료되면 커밋하고, 오류가 발생하면 롤백하여 데이터의 일관성을 보장합니다.
+     */
+    @Bean
+    PlatformTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource); // DataSource를 사용한 트랜잭션 매니저
+    }
+
+    /**
+     * JdbcTemplate을 설정하는 메서드입니다.
+     * JdbcTemplate은 SQL 쿼리 실행을 간소화해 주는 Spring의 유틸리티 클래스입니다.
+     * SQL 쿼리를 실행하고, 그 결과를 처리하는 복잡한 작업을 대신 처리해 줍니다.
+     * @param dataSource 데이터베이스 연결 정보를 담고 있는 DataSource 객체
+     * @return JdbcTemplate 객체
+     *
+     * JdbcTemplate의 주요 기능:
+     * 1. SQL 쿼리 실행: SQL 쿼리, 업데이트 또는 조회를 실행할 수 있습니다.
+     * 2. 결과 매핑: 데이터베이스 쿼리 결과를 객체로 매핑할 수 있습니다. 예를 들어, ResultSet을 특정 객체에 매핑할 때 사용됩니다.
+     * 3. 예외 처리: SQLException과 같은 JDBC 예외를 런타임 예외로 변환하여 처리할 수 있습니다.
+     * 4. 리소스 관리: 데이터베이스 연결, Statement, ResultSet 등 리소스를 자동으로 관리하고 종료시켜 줍니다.
+     * 5. Batch 처리: 대량의 데이터를 처리할 때 유용한 배치 처리를 지원합니다.
+     *
+     * JdbcTemplate은 반복적인 JDBC 코드를 간소화하고, 자원 관리 및 예외 처리를 자동화하여 개발자가 쉽게 사용할 수 있도록 도와줍니다.
+     */
+    @Bean
+    JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource); // DataSource를 사용하여 JdbcTemplate 객체 생성
+    }
+}
+
+```
+
+- 이걸 통해서 Configuration 어노테이션을 붙여주고 트랜잭션 설정한다는 걸 명시
+- @EnableTransactionManagement를 통해서 트랜잭션 관리 기능을 사용하겠다고 명시
+- 개발자가 트랜잭션 시점을 판단하는 것이 아닌 스프링이 직접 판단하게됨
+
+`*PlatformTransactionManager는 getTransaction, commit, rollback 3개의 메소드로 정의되어 있는 인터페이스`* 
+
+```java
+    @Bean
+    PlatformTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource); // DataSource를 사용한 트랜잭션 매니저
+    }
+```
+
+- Bean(name=”transactionManager”) 이렇게 명시하지 않는다면 메소드명으로 빈 이름이 생성됨
+- 여기서 리턴되는 값이 DataSourceTransactionManager라는 값이 리턴되어 빈으로 등록되는데
+
+![스크린샷 2025-02-18 오전 10.48.04.png](attachment:35439bf8-db0b-4e16-ba3b-a9b44df0eb43:스크린샷_2025-02-18_오전_10.48.04.png)
+
+PlatformTansactionManger 구현체인 것을 확인할 수 있다
+
+Datasource 자체가 커넥션 풀인데 이걸 주입 받음
+
+JDBC는 기본적으로 커넥션을 하나 얻어와 트랜잭션을 처리하는데 DataSourceTranscationManager를 생성하는데.. 이걸 빈으로 만들어 등록해주면 
+
+```java
+@EnableTransactionManagement // 트랜잭션 관리 기능을 활성화하는 어노테이션
+```
+
+이게 활성화됨
+
+JPA라는 기술은 Datasource를 직접적으로 쓰는게 아닌 엔티티 매니저를 사용
+
+얜 jpaTransactionManager를 씀
+
+하지만 어떤 기술을 쓰던지 @Transaction 어노테이션만 붙여주면 트랜잭션 처리가 된다 
+
+트랜잭션 구현체 ! !
+
+이런거를 PortableServiceAbstraction 라고 하는데 이게 스프링 코어의 핵심 기능
+
+스프링이 트랜잭션을 관리하기 때문에 JPA를 쌩으로 쓰는게 아닌 트랜잭션 달아줘야함
+
+그게 바로 jdbcTemplate를 빈으로 등록해주면 얘를 통해서 jdbc api를 써야 스프링이 관리하도록 위임해줄 수 있다 
+
+```java
+@Repository
+public class JdbcMemberRepository implements MemberRepository {
+
+    private final JdbcTemplate jdbcTemplate;
+```
+
+얘도 컴포넌트 스캔을 통해 빈으로 등록된다
+
+```java
+/**
+ * @ComponentScan:
+ * - 지정된 RootPackageBase.class를 기준으로 하위 패키지에서 Spring의 특정 애노테이션(@Component, @Service, @Repository, @Controller)을 검색합니다.
+ * - basePackageClasses 속성을 통해 특정 클래스를 기준으로 기본 패키지를 설정합니다.
+ * - 여기서는 RootPackageBase를 기준으로 스캔 범위를 정의합니다.
+ *
+ * @Component: Spring컨테이너가 관리하는 일반적인 BEAN객체를 정의합니다.
+ * 구체적인 역할에 따라 Service, Repository, Controller로 세분화할 수 있습니다.
+ * 
+ * @Service:
+ * - 비즈니스 로직을 처리하는 서비스 계층에서 사용됩니다.
+ * - 서비스 계층에 명확한 역할을 부여하며, 비즈니스 로직이 포함된 클래스를 나타냅니다.
+ *
+ * @Repository:
+ * - 데이터 액세스 계층에서 사용되며, 데이터베이스와의 상호작용을 담당합니다.
+ * - 주로 DAO(Data Access Object) 클래스에 사용됩니다.
+ * - @Repository는 데이터 액세스 예외를 Spring 데이터 액세스 예외로 변환하는 역할도 합니다.
+ *
+ *
+ * @Controller:
+ * - 프레젠테이션 계층에서 사용되며, 웹 요청을 처리하고 응답을 반환하는 역할을 합니다.
+ * - 주로 HTTP 요청을 매핑하고, 적절한 뷰(View)를 선택하거나 데이터를 반환합니다.
+ */
+```
+
+이런 애들을 스테레오 타입 빈, 스테레오 빈 등이라고 칭함
+
+```java
+public class JdbcMemberRepository implements MemberRepository {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    // 생성자 주입 방식으로 JdbcTemplate을 주입받습니다. 생성자 주입은 필드 주입이나 세터 주입보다 더 안전하며 테스트가 용이합니다.
+    // 테스트를 작성할 때 해당 객체를 Mocking하기 쉽고, 객체가 불변성을 가질 수 있기 때문에 권장되는 방식입니다.
+    public JdbcMemberRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+```
+
+- 생성자주입
+    - 어딘가에서 빈에 등록되어있는 JdbcTemplate
+        - TransacationConfig에 있음
+    - 즉 TransactionConfig에 @Bean 태그가 붙어있는 JdbcTemplate 예를 순서에 맞게 스프링이 알아서 등록해준다
+
+```java
+ @Override
+    public void save(Member member) {
+        // 회원 정보를 members 테이블에 삽입하는 SQL 쿼리문
+        String sql = """
+                    insert into members (
+                        mb_email,
+                        mb_name,
+                        mb_password,
+                        mb_mobile,
+                        created_at
+                    ) 
+                    values(?,?,?,?,?);
+                """;
+
+        // KeyHolder는 삽입된 레코드의 키 값을 반환받기 위한 객체
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        // JdbcTemplate의 update 메서드를 사용하여 PreparedStatement를 생성하고 실행합니다.
+        // PreparedStatement 객체를 통해 SQL 쿼리의 파라미터를 바인딩합니다.
+        int rows = jdbcTemplate.update(connection -> {
+            PreparedStatement psmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            int index = 1;
+            psmt.setString(index++, member.getMbEmail());
+            psmt.setString(index++, member.getMbName());
+            psmt.setString(index++, member.getMbPassword());
+            psmt.setString(index++, member.getMbMobile());
+            psmt.setTimestamp(index++, Timestamp.valueOf(LocalDateTime.now()));
+            return psmt;
+        }, keyHolder);
+
+        // 삽입 성공 시, 생성된 키를 member 객체에 반영
+        if (rows > 0) {
+            long mbNo = Objects.requireNonNull(keyHolder.getKey()).longValue();
+            log.debug("Inserted member with mbNo={}", mbNo);
+            // Reflection을 사용하여 member 객체의 mbNo 필드를 동적으로 설정
+            ReflectionUtils.setField(member, "mbNo", mbNo);
+        }
+    }
+
+```
+
+- 이걸 보면 int rows 를 보면 코드가 살짝 다르다 이전과 다른 점은jdbcTemplate.update 를 통해서 넣어준다
+- jdbcTemplate의 keyHolder객체를 통해서 업데이트할 때 알아서 아이디 값을 넣어준다
+- if(rows>0)에서 가져와서 씀
+- jdbcTemplate를 써야 트랜잭션 처리를 할 수 있는데 여기서 이렇게 하는 방법은
+- save메소드 위에 @Transactional 어노테이션 추가해주면 됨
+- 이 외에도 다른 메소드에 트랜잭션 어노테이션을 달아줘야하는데 이건 번거로우니까 Repository 자체의 모든 메소드를 트랜잭션 처리하고 싶다하면 클래스 레벨에서 @Transactional을 붙이면 됨 즉
+
+![스크린샷 2025-02-18 오전 11.16.25.png](attachment:79658f75-0715-45ed-9de5-27fe1efc7e94:스크린샷_2025-02-18_오전_11.16.25.png)
+
+하지만 예제에서는 붙이지 않았다
+
+- Commit, Rollback을 왜 이 Repository 레벨에서 해주지 않았을까
+- 트랜잭션 처리시 에러 발생시 롤백이 되는데
+- 보통 에러 발생할게 repository, service, controller 중 service에서 좀 많이 발생한다
+- 왜냐하면 여러 레포지토리에 접근을 하게 되는데, 즉 DB 처리는 잘 됐지만 비즈니스 로직에서 오류가 날 수 있기에 롤백은 서비스에서 처리한다
+- 즉 트랜잭션 처리시 repostiory가 아닌 service에서 롤백, 커밋 등등을 처리하는게 맞다
+- 각각 레포지토리 단위로 트랜잭션 걸면 하나의 트랜잭션 단위로 안 묶인다
+- 즉 서비스단에서 트랜잭션 처리를 한다
+
+---
+
+# TODO 3
+
+```java
+@ContextConfiguration(classes = {ApplicationConfig.class})
+@ExtendWith(SpringExtension.class)
+
+```
+
+- @Autowired 어노테이션을 통해 memberRepository를 통해 필드에 주입
+- 이거하려면 ApplicationContext에 등록되어있어야하는데 이걸 테스트환경에서도 만들어주는게 SpringExtension.class
+- Context를 만들 때 어떤 환경을 만들거냐가 @ContextConfiguration
+
+```java
+/**
+ * TODO#3-1-3 테스트 환경에서의 트랜잭션 처리
+ * @Transactional: 이 어노테이션은 테스트 메소드가 실행될 때 트랜잭션을 시작하고, 메소드 실행 후 자동으로 롤백되도록 설정합니다.
+ * 주로 데이터베이스의 상태를 변경하는 테스트에서 사용되며, 테스트가 끝난 후 데이터베이스에 변경 사항을 남기지 않도록 합니다.
+ */
+@Transactional
+```
+
+- 테스트 클래스 안의 각각의 메소드들은 트랜잭션 처리가 된다
+- 즉 커밋, 롤백이 적용됨
+- 테스트에서는 트랜잭션 처리가 다 커밋 되는게 아니라 정상적으로 되더라도 다 롤백됨
+    - 커밋시켜버리면 데이터베이스에 다 들어가기 때문에
+
+```java
+ /**
+     * TODO#3-1-5 Rollback 관리
+     *  - @Rollback(value=true)  =  test method 실행 후 rollback 됩니다.
+     *  - @Rollback(value=false) =  test method 실행 후 rollback 되지 않습니다.
+     *  - @Rollback 에너테이션을 사용하지 않더라도 테스트에서는 @Transactional 때문에 rollback 됩니다.
+     */
+    @Rollback(value = true)
+    @Test
+    @DisplayName("회원등록")
+    void save() {
+
+        Member member1 = Member.ofNewMember("marco@nhnacademy.com","마르코","12345","01012345678");
+        Member member2 = Member.ofNewMember("test@nhnacademy.com","테스트","12345","01011112222");
+
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        Optional<Member> actualOptionalMember1 = memberRepository.findByMbNo(member1.getMbNo());
+        Optional<Member> actualOptionalMember2 = memberRepository.findByMbNo(member1.getMbNo());
+
+        Assertions.assertTrue(actualOptionalMember1.isPresent());
+        Assertions.assertTrue(actualOptionalMember2.isPresent());
+
+        log.debug("member1: {}", actualOptionalMember1.get());
+        log.debug("member2: {}", actualOptionalMember2.get());
+
+        Assertions.assertAll(
+                ()->Assertions.assertNotNull(actualOptionalMember1.get()),
+                ()->Assertions.assertEquals(member1.getMbEmail(), actualOptionalMember1.get().getMbEmail()),
+                ()->Assertions.assertEquals(member1.getMbName(), actualOptionalMember1.get().getMbName()),
+                ()->Assertions.assertEquals(member1.getMbPassword(), actualOptionalMember1.get().getMbPassword()),
+                ()->Assertions.assertEquals(member1.getMbMobile(), actualOptionalMember1.get().getMbMobile()),
+                ()->Assertions.assertNotNull(actualOptionalMember1.get().getCreatedAt()),
+
+                ()->Assertions.assertNotNull(actualOptionalMember2.get()),
+                ()->Assertions.assertEquals(member1.getMbEmail(), actualOptionalMember2.get().getMbEmail()),
+                ()->Assertions.assertEquals(member1.getMbName(), actualOptionalMember2.get().getMbName()),
+                ()->Assertions.assertEquals(member1.getMbPassword(), actualOptionalMember2.get().getMbPassword()),
+                ()->Assertions.assertEquals(member1.getMbMobile(), actualOptionalMember2.get().getMbMobile()),
+                ()->Assertions.assertNotNull(actualOptionalMember2.get().getCreatedAt())
+        );
+
+    }
+```
+
+- 실제 테스트코드들은 거의 변한게 없다
+
+---
+
+# TODO 4
+
+```java
+/**
+ * TODO#4 Spring 기반의 Service 환경(구성)
+ */
+@Slf4j
+
+/**
+ * TODO#4-1 @Service
+ * 이 어노테이션은 Spring의 서비스 계층(Component)로 사용되는 클래스에 적용됩니다.
+ * 서비스 계층은 비즈니스 로직을 처리하는 역할을 하며, @Service 어노테이션을 사용하면 Spring이 해당 클래스를 자동으로
+ * 빈(Bean)으로 등록하여 의존성 주입을 할 수 있게 됩니다.
+ * 이 어노테이션은 주로 서비스 클래스에 사용되며, 해당 클래스가 비즈니스 로직을 처리하는 역할을 담당한다고
+ * Spring에게 알려줍니다.
+ *
+ * @Service는 @Component의 특수화된 형태이기 때문에, Spring의 컴포넌트 스캔에 의해 자동으로 빈으로 등록됩니다.
+ * 따라서 다른 컴포넌트나 클래스에서 의존성 주입을 통해 사용할 수 있습니다.
+ */
+@Service
+
+/**
+ * TODO#4-2 @Transactional
+ * 이 어노테이션은 메소드 또는 클래스 수준에 적용되어 트랜잭션 처리를 자동으로 관리합니다.
+ * 트랜잭션은 데이터베이스 작업에서 여러 연산을 하나의 단위로 묶어, 그 연산들이 모두 성공하거나 실패해야 하는 조건을 처리합니다.
+ * @Transactional은 주로 서비스 계층에서 사용되며, 메소드 실행이 끝나면 트랜잭션을 자동으로 커밋하거나 롤백합니다.
+ *
+ * 이 어노테이션이 적용된 메소드가 실행되면 Spring은 트랜잭션을 시작하고, 메소드 실행 후 자동으로 트랜잭션을
+ * 커밋합니다. 만약 예외가 발생하면, 트랜잭션을 롤백합니다. 롤백 조건은 기본적으로 `RuntimeException`과 `Error`에 대해서만 적용됩니다.
+ * 예외를 다룰 때 `@Transactional(rollbackFor = Exception.class)`와 같이 설정하여 커스텀 예외를 지정할 수도 있습니다.
+ * @Transactional
+ */
+@Transactional
+```
+
+- 의미상 비즈니스 로직을 담당하는 애라고 @Service 붙여주고 이 클래스 안에 모든 메소드들은 Transaction 처리가 됨
+- 빈 이름은 자동으로 생성됨
+
+```java
+@Controller
+public class MemberController(){
+    private final MemberService memberService;
+    public MemberController(MemberService memberService){this.memberService=memberService;}
+}
+
+```
+
+스프링은 인터페이스 구현체가 1개밖에 없다면 그 멤버 서비스라는걸 주입시킨다
+
+만약 memberSerivce 인터페이스의 구현체가 여러개라면 어떤 애를 주입시킬지 모르니까
+
+그럴 때 쓰는게 Qualifier
+
+```java
+public MemberController(@Qualifier("memberServiceImpl") MemberService memberService){this.memberService=memberService;}
+```
+
+이렇게 써주면 memberService 구현체가 여러개여도 주입할것은 이 MemberController라는 걸 빈에 주입한다는 얘기다 
+
+---
+
+## 복습
+
+![스크린샷 2025-02-18 오후 1.22.04.png](attachment:96bc6af8-2c27-4272-a539-95afc3594795:스크린샷_2025-02-18_오후_1.22.04.png)
+
+```java
+package com.nhnacademy.demo.controller;
+
+import com.nhnacademy.demo.service.MemberService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+public class MemberController {
+    private final MemberService memberService;
+
+    public MemberController(@Qualifier("defaultMemberService") MemberService memberService){
+        this.memberService =   memberService;
+
+    }
+
+//    @RequestMapping(method = RequestMethod.GET, value = "/index.do")
+    @GetMapping("/index.do")
+    public String index(){
+        return memberService.getMemberName();
+    }
+
+}
+
+```
+
+`@ResponseBody`
+
+- 이거 추가시 viewName으로 보는게 아닌 리턴되는 문자열 자체를 보여줌
+    
+    ![스크린샷 2025-02-18 오후 1.23.25.png](attachment:95db9292-bf6f-4ad8-9653-ca6f04b4e358:스크린샷_2025-02-18_오후_1.23.25.png)
+    
+
+```java
+    public MemberController(@Qualifier("adminMemberService") MemberService memberService){
+        this.memberService =   memberService;
+
+    }
+
+```
+
+![스크린샷 2025-02-18 오후 1.24.30.png](attachment:318e6598-3f06-4002-978e-c71797d00998:스크린샷_2025-02-18_오후_1.24.30.png)
+
+이렇게 바뀌는거 확인
+
+```java
+package com.nhnacademy.demo.controller;
+
+import com.nhnacademy.demo.service.MemberService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@Controller
+public class MemberController {
+    private final MemberService memberService;
+
+    public MemberController( MemberService memberService){
+        this.memberService =   memberService;
+
+    }
+
+//    @RequestMapping(method = RequestMethod.GET, value = "/index.do")
+
+    @GetMapping("/index.do")
+    @ResponseBody
+    public String index(){
+        return memberService.getMemberName();
+    }
+
+}
+
+```
+
+이거 Qualifier 지정안하고 디폴트로 들어갔으면 좋겠어라고 한다면
+
+@Primary 붙여져있는 애를 우선 주입
+
+```java
+package com.nhnacademy.demo.service.impl;
+
+import com.nhnacademy.demo.repository.MemberRepository;
+import com.nhnacademy.demo.service.MemberService;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
+@Primary
+@Service("defaultMemberService")
+public class DefaultMemberSerivce implements MemberService {
+
+    private final MemberRepository memberRepository;
+
+    public DefaultMemberSerivce(MemberRepository memberRepository ){
+        this.memberRepository= memberRepository;
+    }
+
+    @Override
+    public String getMemberName() {
+        return "Default";
+    }
+}
+
+```
+
+---
+
+## **Portable Service Abstraction**
+
+- IoC, DI, PSA는 Spring-Core의 3가지 핵심 기술
+
+```java
+@Autowired
+    private MemberService memberService;
+
+```
+
+Autowired 되도록 쓰지 않는 이유 
+
+- final을 빼면 객체가 변할 수 있다.
+
+```java
+ @GetMapping("/index.do")
+    @ResponseBody
+    public String index(){
+        memberService = new AdminMemberService();
+        return memberService.getMemberName();
+    }
+
+```
+
+![스크린샷 2025-02-18 오후 1.42.38.png](attachment:f83d602a-6533-4306-8a15-957b24f32af0:스크린샷_2025-02-18_오후_1.42.38.png)
+
+- Primary가 Default로 되어있음에도 불구하고 객체를 Admin으로 선언해서 변경되어 결과적ㅇ로 Admin이 나오는 문제점
+- 결과적으로 Autowired를 안쓰는 생성자 주입을 쓰는게 좋다
+- 즉 final을 이용해서 불변객체로 사용하는게 바람직하다
+
+<aside>
+💡
+
+만약 상황에 따라 분기로 사용하고 싶다 즉,, Default, Admin 둘다 사용하고 싶다면?
+
+```java
+package com.nhnacademy.demo.controller;
+
+import com.nhnacademy.demo.service.MemberService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+@Controller
+public class MemberController {
+    private List<MemberService> memberServiceList;
+
+    public MemberController( List<MemberService> memberServiceList){
+        this.memberServiceList =   memberServiceList;
+
+    }
+//    @RequestMapping(method = RequestMethod.GET, value = "/index.do")
+
+    @GetMapping("/index.do")
+    @ResponseBody
+    public String index(){
+        return memberServiceList.get(1).getMemberName();
+    }
+
+}
+
+```
+
+이렇게 후
+
+```java
+package com.nhnacademy.demo.service.impl;
+
+import com.nhnacademy.demo.service.MemberService;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Service;
+
+@Service("adminMemberService")
+@Order(2)
+public class AdminMemberService implements MemberService {
+
+    @Override
+    public String getMemberName() {
+        return "Admin";
+    }
+}
+
+```
+
+Default는 Order(1)
+
+여기서 Order는 빈이 생성되는 순서를 정의한건데 이와 같이 한다면? 당연히 0번 요소 출력시 **Default**라는 결과가 나온다
+
+</aside>
+
+## 환경 설정에 의해 빈을 생성하는 방법
+
+```java
+package com.nhnacademy.demo.controller;
+
+import com.nhnacademy.demo.config.ApplicationConfig;
+import com.nhnacademy.demo.service.MemberService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+@Controller
+public class MemberController {
+    private List<MemberService> memberServiceList;
+    private final String helloMessage;
+
+    public MemberController(String helloMessage){
+        this.helloMessage = helloMessage;
+    }
+
+    @GetMapping("/index.do")
+    @ResponseBody
+    public String index(){
+//        return memberServiceList.get(0).getMemberName();
+        return helloMessage;
+    }
+
+}
+
+```
+
+- 메소드 단위 빈 등록 @Bean
+    
+    ![스크린샷 2025-02-18 오후 2.00.29.png](attachment:582447ca-7f6e-4603-ad40-5cd729a20a82:스크린샷_2025-02-18_오후_2.00.29.png)
+    
+
+우선
+
+**db.properties**
+
+```java
+db.username=test
+db.password=1234
+```
+
+이걸 DbProperties
+
+```java
+package com.nhnacademy.demo.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+
+@Configuration
+@PropertySource("classpath:db.properties")
+public class DbProperties {
+    private String userName;
+    private String userPassword;
+
+    public String getUserName(){
+        return userName;
+    }
+
+    public String getUserPassword(){
+        return  userPassword;
+    }
+}
+
+```
+
+이제 각각의 필드에 프로퍼티값 할당해주는거
+
+![스크린샷 2025-02-18 오후 2.07.23.png](attachment:f4da6d9d-0fd4-47fc-abe1-22b018cd3167:스크린샷_2025-02-18_오후_2.07.23.png)
+
+- 스프링프레임워크의 밸류인 것을 꼭 확인 !!
+
+```java
+package com.nhnacademy.demo.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+
+@Configuration
+@PropertySource("classpath:db.properties")
+public class DbProperties {
+    @Value("${db.username}")
+    private String userName;
+    @Value("${db.password}")
+    private String userPassword;
+
+    public String getUserName(){
+        return userName;
+    }
+
+    public String getUserPassword(){
+        return  userPassword;
+    }
+}
+
+```
+
+이제 컨트롤러에 적용 후 테스트
+
+```java
+
+package com.nhnacademy.demo.controller;
+
+import com.nhnacademy.demo.config.ApplicationConfig;
+import com.nhnacademy.demo.config.DbProperties;
+import com.nhnacademy.demo.service.MemberService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+
+@Controller
+public class MemberController {
+    private List<MemberService> memberServiceList;
+    private final String helloMessage;
+    private final DbProperties dbProperties;
+
+    public MemberController(String helloMessage, DbProperties dbProperties){
+        this.helloMessage = helloMessage;
+        this.dbProperties = dbProperties;
+    }
+
+    @GetMapping("/index.do")
+    @ResponseBody
+    public String index(){
+//        return memberServiceList.get(0).getMemberName();
+        return dbProperties.toString();
+    }
+
+}
+
+```
+
+![스크린샷 2025-02-18 오후 2.10.29.png](attachment:6602dca7-6e75-4a81-8295-983f1c4d3926:스크린샷_2025-02-18_오후_2.10.29.png)
+
+![image.png](attachment:d6f02238-7369-407a-8295-1de2ded61ae4:image.png)
+
+테스트 코드 생성 
+
+```java
+@ExtendWith(SpringExtension.class)
+```
+
+```java
+package com.nhnacademy.demo.service.impl;
+
+import com.nhnacademy.demo.repository.MemberRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@ExtendWith(MockitoExtension.class)
+class DefaultMemberSerivceTest {
+
+//    @Mock  //가짜 객체 주입
+    MemberRepository memberRepository;
+
+//    @InjectMocks
+    DefaultMemberSerivce defaultMemberSerivce;
+
+    void setUp(){
+        memberRepository = Mockito.mock(MemberRepository.class); // 가짜 객체가 됨
+        defaultMemberSerivce = new DefaultMemberSerivce(memberRepository);
+    }
+
+    @Test
+    void getMemberName() {
+    }
+}
+```
+
+원래대로라면 이렇게 해줬는데 
+
+```java
+package com.nhnacademy.demo.service.impl;
+
+import com.nhnacademy.demo.repository.MemberRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@ExtendWith(MockitoExtension.class)
+class DefaultMemberSerivceTest {
+
+    @Mock  //가짜 객체 주입
+    MemberRepository memberRepository;
+
+    @InjectMocks
+    DefaultMemberSerivce defaultMemberSerivce;
+    
+    
+    
+        
+    @Test
+    void getMemberName() {
+    }
+}
+```
+
+이렇게 간편하게 가능 
+
+!!!
+
+---
+
+# JPA
+
+## Spring Data
+
+- Spring Data는 Spring 생태계의 일부로, 데이터 접근 계층을 쉽게 구성하고 데이터베이스와의 상호작용을 간편하게 하기 위해 제공되는 프로젝트입니다.
+- 이를 통해 개발자는 데이터베이스 작업을 효율적으로 수행할 수 있으며, `다양한 데이터 저장소에` 접근할 수 있습니다.
+- Spring Data의 주요 목표는 데이터 접근 계층을 단순화하고, `일관된 프로그래밍 모델을` 제공하는 것입니다.
+- 즉, Spring `Data는 데이터 접근 계층을 단순화하고 다양한 데이터 저장소와의 상호작용을` 지원하는 프로젝트입니다.
+
+**Spring Data JPA**
+
+- JPA(Java Persistence API)를 사용하여 객체 관계 매핑(ORM) 및 데이터 접근 계층을 구현합니다.
+- Repository 인터페이스를 통해 CRUD 작업을 쉽게 수행할 수 있습니다.
+
+이거만 제대로 써도 MongoDB, Redis, 등.. 뭐든 쓸 수 있다
+
+<aside>
+💡
+
+**PSA**
+
+**이따 찾아서 정리하기**
+
+</aside>
+
+직접 네이티브 쿼리를 쓰기보단 , 엔티티 객체의 연관관계를 이용해 쿼리들이 자동으로 생성될 수 있게 하는 것이 **Object Relation Mapping**이라고 한다
+
+- **이 ORM 스펙을 만들어둔 것이 JPA**
+
+[[DB] 하이버네이트(Hibernate)란?](https://livenow14.tistory.com/70)
+
+결론 : Spring Data JPA는 하이버네이트를 좀 더 추상화한 거고 ORM을 구현했다? 
+
+하이버네이트 오픈 소스지만 ORM이 표준
+
+객체들간의 연관관계를 이용해서 쿼리 작성 없이도 데이터 조회가 가능한
+
+### Entity
+
+- 객체
+- ORM의 객체 = 엔티티
+- 테이블과 객체로 1:1로 매핑됨
+
+```java
+클래스는 단수 테이블은 복수형으로 
+//@Entity anootation을 선언하세요.
+@Entity
+//@Table annotation을 사용하여 TableName을 지정합니다.
+@Table(name = "members")
+public class Member {
+
+    //@Id annotation을 사용하여 entity를 식별할 수 있는 ID Field를 지정합니다.
+    //회원_번호
+    @Id
+
+    //@GeneratedValue 를 사용하여 ID생성 전략을 설정 합니다.
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //IDENTITY = AUTO_INCREAMENT
+    @Column(name = "mb_no") // 이 테이블의 기본키 반드시 있어야함 !! 
+    private Long mbNo;
+```
+
+- JPA에서 prePersist()를 이용해 객체가 영속화가 될 때 createdAt을 설정해줘 등..  JPA는 엔티티의 생성 시점 결정 가능
+
+- 이런걸 EntityManager가 관리해주는데
+
+자바에서 로컬환경 테스트 시엔
+
+![image.png](attachment:ed986de5-fd0c-408c-a9dc-5eb3deade111:image.png)
+
+이와 같이 h2를 사용
+
+아주 경량화된 DB를 구동시켜서 H2를 이용
+
+```java
+
+//@PropertySource("classpath:db.properties") // db.properties 파일을 로드
+이런 방식으로 해서는 안된다 
+```
+
+```java
+@SuppressWarnings("java:S107")
+@Configuration
+@Slf4j
+/**
+ * TODO#4 - profile에 따라서 환경을 로드 합니다. 따라서 @PropertySource는 사용하지 않습니다.
+ */
+//@PropertySource("classpath:db.properties") // db.properties 파일을 로드
+public class DbProperties {
+
+    // 기본 Bean 이름을 설정합니다.
+    public static final String BEAN_NAME = "dbProperties";
+
+    @Value("${db.url}")
+    private String url; // 데이터베이스 URL
+    @Value("${db.username}")
+    private String username; // 데이터베이스 사용자명
+    @Value("${db.password}")
+    private String password; // 데이터베이스 비밀번호
+    @Value("${db.initialSize}")
+    private int initialSize; // 초기 커넥션 풀 크기
+    @Value("${db.maxTotal}")
+    private int maxTotal; // 최대 커넥션 풀 크기
+    @Value("${db.maxIdle}")
+    private int maxIdle; // 최대 유휴 커넥션 수
+    @Value("${db.minIdle}")
+    private int minIdle; // 최소 유휴 커넥션 수
+    @Value("${db.maxWait}")
+    private int maxWait; // 커넥션 대기 시간
+    @Value("${db.validationQuery}")
+    private String validationQuery; // 커넥션 검증 쿼리
+    @Value("${db.testOnBorrow}")
+    private boolean testOnBorrow; // 커넥션 풀에서 커넥션을 빌릴 때 검증 여부
+    @Value("${db.spy}")
+    private boolean spy; // P6Spy 로깅 사용 여부
+    //TODO#3 - diriverClassName 바인딩
+    @Value("${db.driverClassName}")
+    private String driverClassName;
+
+```
+
+- 여기서 중간에 선택적으로 읽어주는 녀석이 필요함
+
+## PropertyConfig
+
+```java
+
+package com.nhnacademy.blog.common.db;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
+
+import java.util.Arrays;
+
+@Slf4j
+@Configuration
+@SuppressWarnings("squid:S1118")
+public class PropertyConfig {
+
+    /** TODO#5 - spring.profiles.active=test 기본설정
+     * - spring.profiles.active는 Spring 프레임워크에서 애플리케이션의 활성화된 프로파일을 설정하는 데 사용되는 속성입니다.
+     * 이 속성은 애플리케이션이 실행될 때 어떤 프로파일을 사용할지를 지정하며, 이를 통해 다양한 환경(예: 개발, 테스트, 프로덕션)별로 다른 설정을 적용할 수 있습니다.
+     *
+     *  - PropertySourcesPlaceholderConfigurer는 Spring 프레임워크에서 프로퍼티 파일을 로드하고,
+     * 이를 통해 애플리케이션 컨텍스트에서 사용되는 프로퍼티 플레이스홀더 값을 대체하는 데 사용되는 빈입니다.
+     * 주로 @PropertySource 애노테이션과 함께 사용되어 외부 프로퍼티 파일의 값을 Spring 애플리케이션 컨텍스트에 주입하는 역할을 합니다.
+     *
+     * @param environment Spring의 Environment 객체로 활성화된 프로파일 정보를 제공합니다.
+     * @return PropertySourcesPlaceholderConfigurer 객체를 반환합니다.
+     */
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer testProperties(Environment environment) {
+        // 활성화된 프로파일 정보 로그 출력
+        log.debug("profiles:{}", Arrays.stream(environment.getActiveProfiles()).toList());
+
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        String property;
+
+        // 활성화된 프로파일에 따라 로드할 프로퍼티 파일 결정
+        if(Arrays.stream(environment.getActiveProfiles()).toList().contains("test")){
+            property = "application-test.properties";
+        } else if(Arrays.stream(environment.getActiveProfiles()).toList().contains("prod")){
+            property = "application-prod.properties";
+        } else {
+            property = "application-test.properties";  // 기본값 설정
+        }
+
+        // 선택된 프로퍼티 파일 설정
+        configurer.setLocation(new ClassPathResource(property));
+
+        return configurer;
+    }
+}
+```
+
+- 활성화된 프로파일에 따라 로드할 프로퍼티 파일 결정하는 부분 !!
+- 
+    
+    ![스크린샷 2025-02-18 오후 3.19.26.png](attachment:33e91363-c975-4b8b-a686-e525ef7544e9:스크린샷_2025-02-18_오후_3.19.26.png)
+    
+
+![image.png](attachment:d5b3d7c2-3958-4af4-8461-ba49c4ed0bed:image.png)
+
+- 운영환경에서는 쿼리로그를 볼 필요가 없음 그리고 성능에도 영향을 미치므로
+- prod에서는 spy = false
+- test에서는 spy = true
+
+```java
+    /**
+     * TODO#10-1  test(테스트) 환경에서의 jpaPropertyMap
+     *  - test(테스트) 환경에서의 jpa설정
+     *  - @Profile("test") <-- test profile에서만 Bean 생성됨.
+     * @return
+     */
+    @Bean("jpaPropertyMap")
+    @Profile("test")
+    public Map<String, String> testJpaPropertyMap() {
+        Map<String, String> map = new HashMap<>();
+
+        // Hibernate가 사용할 방언(dialect)을 설정합니다.
+        // 여기서는 H2 데이터베이스 방언을 사용합니다.
+        map.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+
+        // Hibernate가 데이터베이스 스키마를 처리하는 방식을 설정합니다.
+        // 'create-drop'은 애플리케이션 시작 시 스키마를 생성하고, 종료 시 삭제합니다.
+        map.put("hibernate.hbm2ddl.auto", "create-drop");
+
+        // SQL 쿼리를 로그에 출력할지 여부를 설정합니다.
+        // 'true'로 설정하면 SQL 쿼리가 로그에 출력됩니다.
+        map.put("hibernate.show_sql", "true");
+
+        // SQL 쿼리를 포맷할지 여부를 설정합니다.
+        // 'true'로 설정하면 SQL 쿼리가 포맷되어 읽기 쉽게 정렬됩니다.
+        map.put("hibernate.format_sql", "true");
+
+        // SQL 쿼리에 주석을 추가할지 여부를 설정합니다.
+        // 'true'로 설정하면 SQL 쿼리에 주석이 추가됩니다.
+        map.put("hibernate.use_sql_comments", "true");
+
+        return map;
+    }
+
+    /**
+     * TODO#10-2  prod(운영) 환경에서의 jpaPropertyMap
+     *  - prod(운영) 환경에서의 jpa설정
+     *  - @Profile("prod") <-- prod profile에서만 Bean 생성됨.
+     * @return
+     */
+    @Bean("jpaPropertyMap")
+    @Profile("prod")
+    public Map<String, String> prodJpaPropertyMap() {
+        Map<String, String> map = new HashMap<>();
+
+        // Hibernate가 사용할 방언(dialect)을 설정합니다.
+        // 여기서는 MySQL 데이터베이스 방언을 사용합니다.
+        map.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+
+        // Hibernate가 데이터베이스 스키마를 처리하는 방식을 설정합니다.
+        // 'validate'는 엔티티와 테이블 구조가 일치하는지 확인하지만, 실제로 변경하지는 않습니다.
+        map.put("hibernate.hbm2ddl.auto", "validate");
+
+        // SQL 쿼리를 로그에 출력할지 여부를 설정합니다.
+        // 'false'로 설정하면 SQL 쿼리가 로그에 출력되지 않습니다.
+        map.put("hibernate.show_sql", "false");
+
+        // SQL 쿼리를 포맷할지 여부를 설정합니다.
+        // 'false'로 설정하면 SQL 쿼리가 포맷되지 않습니다.
+        map.put("hibernate.format_sql", "false");
+
+        // SQL 쿼리에 주석을 추가할지 여부를 설정합니다.
+        // 'false'로 설정하면 SQL 쿼리에 주석이 추가되지 않습니다.
+        map.put("hibernate.use_sql_comments", "false");
+        return map;
+    }
+
+```
+
+- @Profile을 보면 환경에 따라서 빈이 생성될수도 있고 안될수도 있다
+
+```java
+package com.nhnacademy.blog.common.config;
+
+import jakarta.persistence.EntityManagerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@Configuration
+
+/**
+ * TODO#9 - @EnableJpaRepositories 애노테이션은 Spring Data JPA 리포지토리를 활성화하는 역할을 합니다.
+ * 이 애노테이션을 사용하면 JPA 리포지토리 인터페이스()가 Spring 애플리케이션 컨텍스트에 자동으로 등록됩니다.
+ */
+@EnableJpaRepositories(
+        // basePackageClasses 속성은 스캔할 리포지토리 인터페이스가 포함된 패키지를 지정합니다.
+        // com.nhnacademy.blog.RootPackageBase 클래스가 위치한 패키지를 기준으로 리포지토리 인터페이스를 찾습니다.
+        basePackageClasses = {com.nhnacademy.blog.RootPackageBase.class},
+        // transactionManagerRef 속성은 사용할 트랜잭션 매니저 빈의 이름을 지정합니다.
+        // 여기서는 "jpaTransactionManager"라는 이름의 트랜잭션 매니저를 사용합니다.
+        transactionManagerRef ="jpaTransactionManager",
+        // entityManagerFactoryRef 속성은 사용할 엔티티 매니저 팩토리 빈의 이름을 지정합니다.
+        // 여기서는 "jpaEntityManagerFactory"라는 이름의 엔티티 매니저 팩토리를 사용합니다.
+        entityManagerFactoryRef = "jpaEntityManagerFactory"
+)
+
+//Spring의 트랜잭션 관리 기능을 활성화합니다. 이를 통해 메서드에서 트랜잭션을 선언적으로 관리할 수 있습니다.
+@EnableTransactionManagement
+public class JpaConfig {
+
+    /**
+     * TODO#10 - LocalContainerEntityManagerFactoryBean을 설정합니다.
+     * 이 메서드는 데이터 소스를 기반으로 엔티티 매니저 팩토리를 생성합니다.
+     * @param dataSource , Application Context에 등록된  dataSource Bean 주입됩니다.
+     * @return
+     */
+    @Bean(name = "jpaEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean jpaEntityManagerFactory(DataSource dataSource, Map<String,String> jpaPropertyMap) {
+        log.debug("configJpaPropertyMap:{}", jpaPropertyMap);
+
+        LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
+        factoryBean.setDataSource(dataSource);
+        factoryBean.setPackagesToScan("com.nhnacademy.blog");  // 엔티티 클래스가 위치한 패키지 설정
+
+        // Hibernate 관련 설정
+        factoryBean.setJpaPropertyMap(jpaPropertyMap);
+        factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        factoryBean.setPersistenceProviderClass(org.hibernate.jpa.HibernatePersistenceProvider.class);
+
+        return factoryBean;
+    }
+
+    /**
+     * TODO#10-1  test(테스트) 환경에서의 jpaPropertyMap
+     *  - test(테스트) 환경에서의 jpa설정
+     *  - @Profile("test") <-- test profile에서만 Bean 생성됨.
+     * @return
+     */
+    @Bean("jpaPropertyMap")
+    @Profile("test")
+    public Map<String, String> testJpaPropertyMap() {
+        Map<String, String> map = new HashMap<>();
+
+        // Hibernate가 사용할 방언(dialect)을 설정합니다.
+        // 여기서는 H2 데이터베이스 방언을 사용합니다.
+        map.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+
+        // Hibernate가 데이터베이스 스키마를 처리하는 방식을 설정합니다.
+        // 'create-drop'은 애플리케이션 시작 시 스키마를 생성하고, 종료 시 삭제합니다.
+        map.put("hibernate.hbm2ddl.auto", "create-drop");
+
+        // SQL 쿼리를 로그에 출력할지 여부를 설정합니다.
+        // 'true'로 설정하면 SQL 쿼리가 로그에 출력됩니다.
+        map.put("hibernate.show_sql", "true");
+
+        // SQL 쿼리를 포맷할지 여부를 설정합니다.
+        // 'true'로 설정하면 SQL 쿼리가 포맷되어 읽기 쉽게 정렬됩니다.
+        map.put("hibernate.format_sql", "true");
+
+        // SQL 쿼리에 주석을 추가할지 여부를 설정합니다.
+        // 'true'로 설정하면 SQL 쿼리에 주석이 추가됩니다.
+        map.put("hibernate.use_sql_comments", "true");
+
+        return map;
+    }
+
+    /**
+     * TODO#10-2  prod(운영) 환경에서의 jpaPropertyMap
+     *  - prod(운영) 환경에서의 jpa설정
+     *  - @Profile("prod") <-- prod profile에서만 Bean 생성됨.
+     * @return
+     */
+    @Bean("jpaPropertyMap")
+    @Profile("prod")
+    public Map<String, String> prodJpaPropertyMap() {
+        Map<String, String> map = new HashMap<>();
+
+        // Hibernate가 사용할 방언(dialect)을 설정합니다.
+        // 여기서는 MySQL 데이터베이스 방언을 사용합니다.
+        map.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+
+        // Hibernate가 데이터베이스 스키마를 처리하는 방식을 설정합니다.
+        // 'validate'는 엔티티와 테이블 구조가 일치하는지 확인하지만, 실제로 변경하지는 않습니다.
+        map.put("hibernate.hbm2ddl.auto", "validate");
+
+        // SQL 쿼리를 로그에 출력할지 여부를 설정합니다.
+        // 'false'로 설정하면 SQL 쿼리가 로그에 출력되지 않습니다.
+        map.put("hibernate.show_sql", "false");
+
+        // SQL 쿼리를 포맷할지 여부를 설정합니다.
+        // 'false'로 설정하면 SQL 쿼리가 포맷되지 않습니다.
+        map.put("hibernate.format_sql", "false");
+
+        // SQL 쿼리에 주석을 추가할지 여부를 설정합니다.
+        // 'false'로 설정하면 SQL 쿼리에 주석이 추가되지 않습니다.
+        map.put("hibernate.use_sql_comments", "false");
+        return map;
+    }
+
+    /**
+     * TODO#11 - 트랜잭션 매니저 설정
+     * - jdbc : DataSourceTransactionManager
+     * - jpa : JpaTransactionManager
+     * @param entityManagerFactory
+     * @return
+     */
+    @Bean
+    public PlatformTransactionManager jpaTransactionManager(EntityManagerFactory entityManagerFactory) {
+        return new JpaTransactionManager(entityManagerFactory);
+    }
+}
+
+```
+
+JPA 트랜잭션 매니저
+
+PSA구조 
+
+```java
+package com.nhnacademy.blog.common.context;
+
+import com.nhnacademy.blog.common.config.ApplicationConfig;
+import com.nhnacademy.blog.common.db.DbProperties;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import javax.sql.DataSource;
+import java.util.Arrays;
+import java.util.Map;
+
+/**
+ * TODO#12 - @ActiveProfiles, prod환경 - application-prod.properties 환경 구성
+ * Spring 테스트 컨텍스트에서 특정 프로파일을 활성화하는 데 사용됩니다.
+ * 이 애노테이션을 사용하면 테스트 실행 시 특정 프로파일을 활성화하여 해당 프로파일의 설정을 적용할 수 있습니다.
+ * 이는 개발, 테스트, 프로덕션 등의 환경별로 다른 설정을 테스트할 때 유용합니다.
+ */
+@ActiveProfiles("prod")
+@ExtendWith({SpringExtension.class})
+@ContextConfiguration(classes = ApplicationConfig.class)
+@Slf4j
+class ContextHolderProdProfileTest {
+
+    /**
+     * TODO#13 - applicationContext 주입
+     */
+    @Autowired
+    ApplicationContext applicationContext;
+
+    /**
+     * TODO#14 - environment 주입
+     */
+    @Autowired
+    Environment environment;
+
+    @Test
+    @DisplayName("load context")
+    void getApplicationContext(){
+
+        //TODO#15 - prod  context Test
+
+        DbProperties dbProperties = (DbProperties) applicationContext.getBean("dbProperties");
+        log.debug("dbProperties:{}", dbProperties);
+
+        DataSource dataSource = (DataSource) applicationContext.getBean("dataSource");
+        log.debug("dataSource:{}", dataSource);
+
+        Assertions.assertNotNull(dbProperties);
+        Assertions.assertNotNull(dataSource);
+
+        Assertions.assertAll(
+                ()->Assertions.assertTrue(dbProperties.getUrl().contains("jdbc:mysql")),
+                ()->Assertions.assertTrue(dbProperties.getUsername().contains("nhn_academy_")),
+                ()->Assertions.assertEquals(5, dbProperties.getInitialSize()),
+                ()->Assertions.assertEquals(5, dbProperties.getMaxTotal()),
+                ()->Assertions.assertEquals(5, dbProperties.getMaxIdle()),
+                ()->Assertions.assertEquals(5, dbProperties.getMinIdle()),
+                ()->Assertions.assertEquals(2, dbProperties.getMaxWait()),
+                ()->Assertions.assertEquals("com.mysql.cj.jdbc.Driver", dbProperties.getDriverClassName()),
+                ()->Assertions.assertEquals("select 1", dbProperties.getValidationQuery()),
+                ()->Assertions.assertTrue(dbProperties.isTestOnBorrow())
+        );
+    }
+
+    @Test
+    @DisplayName("profile : prod")
+    void profileTest(){
+        //TODO#16 - active prod profile
+        boolean actual = Arrays.stream(environment.getActiveProfiles()).toList().contains("prod");
+        Assertions.assertTrue(actual);
+    }
+
+    /**
+     * Spring의 Environment 객체는 다음과 같은 주요 역할을 수행합니다:
+     * - 프로파일 관리: 활성화된 프로파일을 관리하고, 환경별로 다른 설정을 사용할 수 있도록 지원합니다.
+     * - 환경 변수 및 시스템 프로퍼티 접근: 운영체제의 환경 변수와 Java 시스템 프로퍼티에 접근하여 동적으로 설정을 조정합니다.
+     * - 프로퍼티 소스 관리: 여러 프로퍼티 소스를 관리하여 설정 정보를 중앙화하고, 필요에 따라 읽어올 수 있습니다.
+     * = 프로퍼티 값 변환: 프로퍼티 값을 다양한 타입으로 변환하여 사용합니다.
+     * 즉 시스템 환경 변수들을 Environment를 통해서 접근할 수 있다.
+     */
+    @Test
+    @DisplayName("environment test")
+    void environmentTest(){
+        //TODO#17 - 시스템 환경변수 출력
+        for (PropertySource<?> propertySource : ((StandardEnvironment) environment).getPropertySources()) {
+            if (propertySource.getSource() instanceof java.util.Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> map = (Map<String, Object>) propertySource.getSource();
+                map.forEach((key, value) -> log.debug("key:{}= value:{}", key, value));
+            }
+        }
+    }
+
+}
+```
+
+- 이걸 보면 선택적으로 테스트 환경 구성 가능
+- @ActiveProfiles
+- 
+
+엔티티 매니저가  생성되는 시점: 트랜잭션이 시작할 때  (@Transactional)
+
+그 시점에 엔티티 매니저 팩토리 빈에 의해 엔티티매니저가 생성됨
+
+트랜잭션 어노테이션을 레포지토리가 아닌 비즈니스 로직이 있는 서비스에 붙인다는 점
+
+레포지토리 하나 오류나면 비즈니스 로직 전체 롤백해야하니
+
+영속성 서비스의 4가지 특징 
+
+- **데이터를 생성한 프로그램이 종료되어도 사라지지 않는 데이터의 특성**
+
+[[JPA/김영한] 영속성이란 무엇일까?](https://velog.io/@sooyoungh/%EC%98%81%EC%86%8D%EC%84%B1%EC%9D%B4%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%BC%EA%B9%8C)
