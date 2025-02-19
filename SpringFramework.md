@@ -146,4 +146,93 @@ public class ReportService {
    - 구현체가 여러개일 때 사용할 수 있다.
    - 퀄리파이어 매개변수에 밸류값을 명시적으로 작성해줘야 스프링에서 처리한다
 
-     ..?? 
+     ..??
+
+  > GPT 답변
+  @Autowired
+@Autowired는 스프링의 핵심 어노테이션 중 하나로, 다음과 같은 특징을 가집니다:
+
+자동 의존성 주입: 스프링 컨테이너가 자동으로 해당 타입의 빈을 찾아 주입합니다.
+
+다양한 위치에서 사용 가능: 생성자, 세터 메소드, 필드 등 다양한 위치에서 사용할 수 있습니다.
+
+타입 기반 주입: 기본적으로 타입을 기준으로 빈을 주입합니다.
+
+@Qualifier
+@Qualifier는 @Autowired와 함께 사용되며, 다음과 같은 목적으로 사용됩니다:
+
+특정 빈 지정: 동일한 타입의 빈이 여러 개 있을 때 특정 빈을 지정하는 데 사용됩니다.
+
+모호성 해결: 여러 구현체가 있을 때 어떤 빈을 주입할지 명확히 지정할 수 있습니다.
+
+주요 차이점
+사용 목적:
+
+@Autowired: 자동 의존성 주입을 위해 사용
+
+@Qualifier: 동일 타입의 여러 빈 중 특정 빈을 선택하기 위해 사용
+
+동작 방식:
+
+@Autowired: 타입을 기반으로 빈을 자동 주입
+
+@Qualifier: 이름 또는 지정된 값을 기반으로 특정 빈을 선택
+
+사용 상황:
+
+@Autowired: 대부분의 의존성 주입 상황에서 사용
+
+@Qualifier: 동일 타입의 빈이 여러 개 존재하는 경우에 사용
+
+구현체 수와의 관계:
+
+@Autowired: 구현체의 수와 관계없이 사용 가능
+
+@Qualifier: 주로 구현체가 여러 개일 때 사용
+
+### 그럼 Qualifier만 쓰면 되지 않나?
+- 1. @Qualifier는 단독으로 사용할 수 없다
+@Qualifier는 의존성 주입을 위한 보조 어노테이션입니다. 즉, 스프링이 어떤 빈을 주입해야 할지 명확히 지정하는 역할을 하지만, 의존성 주입 자체를 수행하지는 않습니다. @Autowired가 없으면 스프링은 의존성 주입을 수행하지 않으므로, @Qualifier는 반드시 @Autowired와 함께 사용되어야 합니다.
+- 2. 기본 동작과 확장성
+@Autowired의 기본 동작:
+단일 빈이 존재하면 자동으로 주입됩니다. 구현체가 하나뿐인 경우에는 굳이 @Qualifier를 사용할 필요가 없습니다.
+확장성:
+만약 나중에 동일한 타입의 빈이 추가되더라도, 기존 코드에서 @Autowired와 함께 적절히 @Qualifier를 사용하면 쉽게 관리할 수 있습니다. 반대로, 처음부터 모든 의존성에 대해 무조건 @Qualifier를 사용하는 것은 불필요한 코드 복잡성을 초래할 수 있습니다.
+- 3. 구현체가 하나일 경우
+구현체가 하나만 존재하는 상황에서는 굳이 @Qualifier를 사용할 필요가 없습니다. 아래와 같은 경우에는 단순히 @Autowired만 사용하면 됩니다:
+
+```java
+@Service
+public class UserService {
+    @Autowired
+    private UserRepository userRepository; // 단일 구현체
+}
+```
+여기서 스프링은 자동으로 적절한 빈을 찾아 주입합니다.
+- 4. 구현체가 여러 개일 경우
+구현체가 여러 개일 때는 모호성을 해결하기 위해 반드시 @Qualifier를 사용해야 합니다. 예를 들어:
+```java
+@Component("mysqlRepository")
+public class MySQLRepository implements UserRepository {
+    // ...
+}
+
+@Component("mongoRepository")
+public class MongoRepository implements UserRepository {
+    // ...
+}
+
+@Service
+public class UserService {
+    @Autowired
+    @Qualifier("mysqlRepository") // 특정 구현체 선택
+    private UserRepository userRepository;
+}
+```
+위 코드에서 UserRepository의 구현체가 두 개(MySQLRepository, MongoRepository)이므로, 스프링은 어떤 빈을 주입해야 할지 알 수 없습니다. 이때 @Qualifier로 명확히 지정해주는 것이 필요합니다.
+
+- 5. 결론: 왜 둘 다 필요한가?
+자동화와 간결함:
+구현체가 하나인 경우에는 @Autowired만으로 충분하며 코드가 간결해집니다.
+명시적 지정:
+구현체가 여러 개일 때는 @Autowired와 함께 @Qualifier를 사용해 특정 빈을 지정해야 합니다.
