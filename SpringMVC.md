@@ -459,3 +459,134 @@ public class MemberQuestionMarkController {
 | 예외 처리 | 가능 | 가능 | 가능 (다른 메서드의 예외도 처리) |
 | 모델 접근 | 불가능 | 가능 | 불가능 |
 | 응답 수정 | 가능 | 제한적 | 불가능 |
+
+---
+
+```java
+package com.nhnacademy.blog.common.config;
+
+import com.nhnacademy.blog.common.interceptor.LoginCheckInterceptor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * TODO#5 - WebMvcConfigurer
+ * Spring MVC에서 WebMvcConfigurer는 웹 애플리케이션의 MVC 구성 요소를 커스터마이징하기 위한 인터페이스입니다.
+ * 이를 구현하면 Spring MVC의 기본 설정을 확장하거나 사용자 정의 로직을 추가할 수 있습니다.
+ * WebMvcConfigurer는 Spring Boot와 Spring Framework의 자동 설정을 변경하거나 추가 설정을 적용하는 데 사용됩니다.
+ */
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        //TODO#6 - registry에 LoginCheckInterceptor등록
+
+                //registry에 addInterceptor() 메서드를 이용해서 LoginCheckInterceptor를 추가 합니다.
+                registry.addInterceptor(new LoginCheckInterceptor())
+
+                //.addPathPatterns() method를 사용해서 /member/myinfo.do, /member/logout.do 지정하세요.
+                // /member/login.do <-- 로그인 form 임으로 로그인한 사용자도 접근할 수 있음으로  개별적으로 지정 합니다.
+                        .addPathPatterns("/member/myinfo.do","/member/logout.do")
+                //.excludePathPatterns()는 제외할 uri를 설정할 수 있습니다.
+
+                // ex) /index.do, /member/login.do
+                        .excludePathPatterns("/index.do", "/member/login.do");
+    }
+
+}
+```
+
+## **웹사이트의 교통 정리**
+
+이 코드는 웹사이트의 '교통 정리'를 담당합니다. 마치 도로에서 신호등과 교통 표지판이 차들의 이동을 관리하는 것처럼, 이 코드는 웹사이트에서 사용자들의 이동을 관리합니다.
+
+## **주요 기능**
+
+1. **문지기 배치**: **`LoginCheckInterceptor`**라는 문지기를 웹사이트의 특정 장소에 배치합니다.
+2. **통행 규칙 설정**:
+    - 어떤 페이지에 문지기를 세울지 정합니다 (**`addPathPatterns()`**).
+    - 어떤 페이지는 문지기 없이 자유롭게 다닐 수 있게 합니다 (**`excludePathPatterns()`**).
+
+## **코드 작성 방법**
+
+1. **`registry.addInterceptor(new LoginCheckInterceptor())`**로 문지기를 등록합니다.
+2. **`.addPathPatterns("/member/myinfo.do", "/member/logout.do")`**로 문지기가 지켜야 할 페이지를 정합니다.
+3. **`.excludePathPatterns("/index.do", "/member/login.do")`**로 문지기 검사 없이 갈 수 있는 페이지를 정합니다.
+
+```java
+WebConfig 클래스의 주요 기능
+MVC 구성 커스터마이징:
+
+이 클래스는 WebMvcConfigurer 인터페이스를 구현합니다.
+
+이를 통해 Spring MVC의 기본 설정을 확장하거나 사용자 정의 로직을 추가할 수 있습니다.
+
+인터셉터 등록:
+
+addInterceptors 메서드를 오버라이드하여 인터셉터를 등록합니다.
+
+여기서는 LoginCheckInterceptor를 등록하고 있습니다.
+
+URL 패턴 지정:
+
+특정 URL 패턴에 대해 인터셉터를 적용하거나 제외할 수 있습니다.
+
+.addPathPatterns()로 인터셉터를 적용할 URL을 지정합니다.
+
+.excludePathPatterns()로 인터셉터를 적용하지 않을 URL을 지정합니다.
+
+구체적인 설정 내용
+로그인 체크 인터셉터 등록:
+
+new LoginCheckInterceptor()를 통해 로그인 체크 인터셉터를 생성하고 등록합니다.
+
+인터셉터 적용 경로 설정:
+
+/member/myinfo.do와 /member/logout.do 경로에 인터셉터를 적용합니다.
+
+이 경로들은 로그인한 사용자만 접근할 수 있어야 하는 페이지들입니다.
+
+인터셉터 제외 경로 설정:
+
+/index.do와 /member/login.do 경로는 인터셉터 적용에서 제외됩니다.
+
+이 경로들은 로그인하지 않은 사용자도 접근할 수 있어야 하는 페이지들입니다.
+```
+
+## WebConfig → LoginCheckInterceptor
+
+### **전체 흐름**
+
+1. **설정 단계 (WebConfig)**
+    - WebConfig 클래스에서 인터셉터를 등록하고 적용할 URL을 지정합니다.
+2. **요청 처리 단계 (LoginCheckInterceptor)**
+    - 사용자가 웹사이트에 요청을 보냅니다.
+    - 요청된 URL이 인터셉터가 적용된 경로라면, LoginCheckInterceptor가 동작합니다.
+3. **인터셉터 동작 (LoginCheckInterceptor의 메서드들)**
+    - preHandle: 컨트롤러 실행 전 로그인 체크
+    - postHandle: 컨트롤러 실행 후, 뷰 렌더링 전 추가 작업
+    - afterCompletion: 모든 처리가 끝난 후 마무리 작업
+
+### **상세 설명**
+
+1. **WebConfig 설정**
+    - LoginCheckInterceptor를 생성하고 등록합니다.
+    - **`/member/myinfo.do`**와 **`/member/logout.do`**에 인터셉터를 적용합니다.
+    - **`/index.do`**와 **`/member/login.do`**는 인터셉터 적용에서 제외합니다.
+2. **사용자 요청 처리**
+    - 사용자가 **`/member/myinfo.do`**에 접근하려고 합니다.
+3. **LoginCheckInterceptor 동작**
+    - preHandle 메서드가 실행됩니다.
+    - 세션을 확인하여 로그인 상태를 체크합니다.
+    - 로그인되지 않았다면 **`/index.do`**로 리다이렉트합니다.
+    - 로그인되어 있다면 true를 반환하여 요청 처리를 계속합니다.
+4. **컨트롤러 실행**
+    - 인터셉터를 통과하면 해당 URL의 컨트롤러가 실행됩니다.
+5. **postHandle 실행**
+    - 컨트롤러 실행 후, 추가적인 작업이 필요하다면 수행합니다.
+6. **뷰 렌더링**
+    - 결과 페이지가 사용자에게 보여집니다.
+7. **afterCompletion 실행**
+    - 모든 처리가 끝난 후 최종 정리 작업을 수행합니다.
