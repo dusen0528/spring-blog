@@ -1,0 +1,1384 @@
+## Spring MVC
+
+![image.png](attachment:d38a4bf1-42f3-4df5-8fbe-d3f776bb2068:image.png)
+
+![스크린샷 2025-02-28 오전 9.51.28.png](attachment:9b2bce69-61ef-4613-ac29-844d4befade1:스크린샷_2025-02-28_오전_9.51.28.png)
+
+- templates 실제로 우리가 만들 html이 들어갈 경로
+- [application.properties](http://application.properties) : DB, 톰캣 등등 기타 서버 설정
+    - 스프링은 pom.xml에 db관련 의존성 추가시 알아서 Datasource 만들어줌
+    - 
+
+FrameWorkServlet을 상속받은 **DispatcherServlet**
+
+- 이전에 했던 FrontServlet과 같은 역할
+
+**pom.xml**
+
+```java
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.3</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.nhnacademy</groupId>
+    <artifactId>mvc</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>mvc</name>
+    <description>mvc</description>
+    <url/>
+    <licenses>
+        <license/>
+    </licenses>
+    <developers>
+        <developer/>
+    </developers>
+    <scm>
+        <connection/>
+        <developerConnection/>
+        <tag/>
+        <url/>
+    </scm>
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+<!--                    <excludes>-->
+<!--                        <exclude>-->
+<!--                            <groupId>org.projectlombok</groupId>-->
+<!--                            <artifactId>lombok</artifactId>-->
+<!--                        </exclude>-->
+<!--                    </excludes>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+
+```
+
+---
+
+## H2 설정 후 콘솔로 접근하기
+
+```java
+spring.application.name=mvc
+server.port=8080
+
+server.tomcat.uri-encoding=UTF-8
+server.tomcat.threads.max=200
+server.tomcat.threads.max-queue-capacity=2147483647
+
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.datasource.url=jdbc:h2:mem:blog
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.open-in-view=false
+# http://localhost:8080/h2-console
+spring.h2.console.enabled=true
+```
+
+![스크린샷 2025-02-28 오전 10.06.41.png](attachment:7bdb66de-ba27-4389-a117-692cc9d4b7d9:스크린샷_2025-02-28_오전_10.06.41.png)
+
+<aside>
+💡
+
+## 오늘의 목적
+
+회원가입 구현하기
+
+</aside>
+
+1. 멤버 엔티티 구현
+
+```java
+package com.nhnacademy.mvc.member.domain;
+
+import jakarta.persistence.Entity;
+
+import java.time.LocalDateTime;
+
+@Entity
+public class Member {
+   
+    private Long MbNo;
+    private String mbEmail;
+    private String mbPassword;
+    private String mdMobile;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime withdrawalAt;
+    
+}
+
+```
+
+엔티티가 되기 위한 3가지 조건
+
+1. pk    
+
+2. 기본생성자  
+
+3. @Entity
+
+```java
+package com.nhnacademy.mvc.member.domain;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+
+@Entity
+@NoArgsConstructor
+@Table(name = "members")
+@Getter
+public class Member {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "mb_no")
+    private Long MbNo;
+
+    @Column(nullable = false, length = 100)
+    private String mbName;
+    @Column(unique = true, nullable = false, length = 200)
+    private String mbEmail;
+
+    @Column(nullable = false, length = 100)
+    private String mbPassword;
+
+    @Column(unique = true,nullable = true, length = 50)
+    private String mbMobile;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+    private LocalDateTime withdrawalAt;
+
+    public Member(String mbEmail, String mbName, String mbPassword, String mbMobile){
+        this.mbEmail = mbEmail;
+        this.mbName = mbName;
+        this.mbPassword = mbPassword;
+        this.mbMobile = mbMobile;
+    }
+
+    public void updateMember(String mbName,String mbPassword, String mbMobile){
+        this.mbName = mbName;
+        this.mbPassword = mbPassword;
+        this.mbMobile = mbMobile;
+    }
+
+    @PrePersist
+    protected void onCreate(){
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate(){
+        this.updatedAt = LocalDateTime.now();
+    }
+
+}
+
+```
+
+- 기본적으로 @AllArgs.. 편하긴 하지만 사용을 권장하진 않음
+
+이걸 컴파일 시킨 후 타겟 폴더에서 생성된 결과를 보면
+
+```java
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
+
+package com.nhnacademy.mvc.member.domain;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(
+    name = "members"
+)
+public class Member {
+    @Id
+    @GeneratedValue(
+        strategy = GenerationType.IDENTITY
+    )
+    @Column(
+        name = "mb_no"
+    )
+    private Long MbNo;
+    @Column(
+        nullable = false,
+        length = 100
+    )
+    private String mbName;
+    @Column(
+        unique = true,
+        nullable = false,
+        length = 200
+    )
+    private String mbEmail;
+    @Column(
+        nullable = false,
+        length = 100
+    )
+    private String mbPassword;
+    @Column(
+        unique = true,
+        nullable = true,
+        length = 50
+    )
+    private String mbMobile;
+    @Column(
+        nullable = false
+    )
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime withdrawalAt;
+
+    public Member(String mbEmail, String mbName, String mbPassword, String mbMobile) {
+        this.mbEmail = mbEmail;
+        this.mbName = mbName;
+        this.mbPassword = mbPassword;
+        this.mbMobile = mbMobile;
+    }
+
+    public void updateMember(String mbName, String mbPassword, String mbMobile) {
+        this.mbName = mbName;
+        this.mbPassword = mbPassword;
+        this.mbMobile = mbMobile;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}
+
+```
+
+<aside>
+💡
+
+@ExtendWith(SpringExtension.class) 같은 경우에는 모든 빈들을 다 한번에 올려서 쓰는 무거운 어노테이션
+즉 통합테스트 단위에서만 쓰이고 엔티티 테스트 같이 가볍고 데이터 특화된 테스트는 @DataJpaTest 를 사용하는 것이 바람직하다 
+
+서비스 테스트는 Mocikto를 사용하는 것도 마찬가지
+
+서비스, 컨트롤러, 데이터, 레포지토리 등 계층별로 스프링에서 제공해주고 있음
+
+이를 **슬라이스 테스트**라고 함
+
+</aside>
+
+```java
+@Autowired
+    TestEntityManager entityManager;
+```
+
+- 테스트용 엔티티 매니저
+
+```java
+
+    @Test
+    void registerMember(){
+        Member member = new Member(
+                "inho@nhnacademy.com",
+                "inho",
+                "1234",
+                "01012123434"
+        );
+        entityManager.persist(member);
+
+    }
+
+```
+
+- 처음 persist시
+- Map<key, entity>가 내부적으로 존재하는데 실제 데이터를 넣어봐야 키가 나오는데 영속화 컨텍스트 등록시 insert !
+- 즉 확인용 + 저장 되는거다
+- 
+
+---
+
+## 멤버 레포지토리 만들기
+
+스프링부트에서는 @EnableJpaRepository 같은 기능들을 자동으로 만들어주는데 
+
+```java
+package com.nhnacademy.mvc.member.repository;
+
+import com.nhnacademy.mvc.member.domain.Member;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface MemberRepository extends JpaRepository<Member, Long> {
+}
+
+```
+
+![스크린샷 2025-02-28 오전 11.39.26.png](attachment:ca08b240-e800-4daf-835f-3f7f62a85b66:스크린샷_2025-02-28_오전_11.39.26.png)
+
+멤버레포지토리와 같은 인터페이스를 등록해두면 구현체들이 빈에 등록되는 과정 
+
+---
+
+## Member Service & Dto(Data transfer Object)
+
+```java
+package com.nhnacademy.mvc.member.dto;
+
+import lombok.Value;
+
+import java.time.LocalDateTime;
+
+@Value
+public class MemberResponse {
+    Long mbNo;
+    String mbName;
+    String mbPassword;
+    String mbMobile;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
+    LocalDateTime withdrawalAt;
+}
+
+```
+
+**이렇게 만든 후 mvn clean compile → 타겟 폴더를 가보면** 
+
+```java
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
+
+package com.nhnacademy.mvc.member.dto;
+
+import java.time.LocalDateTime;
+import lombok.Generated;
+
+public final class MemberResponse {
+    private final Long mbNo;
+    private final String mbName;
+    private final String mbPassword;
+    private final String mbMobile;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
+    private final LocalDateTime withdrawalAt;
+
+    @Generated
+    public MemberResponse(final Long mbNo, final String mbName, final String mbPassword, final String mbMobile, final LocalDateTime createdAt, final LocalDateTime updatedAt, final LocalDateTime withdrawalAt) {
+        this.mbNo = mbNo;
+        this.mbName = mbName;
+        this.mbPassword = mbPassword;
+        this.mbMobile = mbMobile;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.withdrawalAt = withdrawalAt;
+    }
+
+    @Generated
+    public Long getMbNo() {
+        return this.mbNo;
+    }
+
+    @Generated
+    public String getMbName() {
+        return this.mbName;
+    }
+
+    @Generated
+    public String getMbPassword() {
+        return this.mbPassword;
+    }
+
+    @Generated
+    public String getMbMobile() {
+        return this.mbMobile;
+    }
+
+    @Generated
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
+    @Generated
+    public LocalDateTime getUpdatedAt() {
+        return this.updatedAt;
+    }
+
+    @Generated
+    public LocalDateTime getWithdrawalAt() {
+        return this.withdrawalAt;
+    }
+
+    @Generated
+    public boolean equals(final Object o) {
+        if (o == this) {
+            return true;
+        } else if (!(o instanceof MemberResponse)) {
+            return false;
+        } else {
+            MemberResponse other = (MemberResponse)o;
+            Object this$mbNo = this.getMbNo();
+            Object other$mbNo = other.getMbNo();
+            if (this$mbNo == null) {
+                if (other$mbNo != null) {
+                    return false;
+                }
+            } else if (!this$mbNo.equals(other$mbNo)) {
+                return false;
+            }
+
+            Object this$mbName = this.getMbName();
+            Object other$mbName = other.getMbName();
+            if (this$mbName == null) {
+                if (other$mbName != null) {
+                    return false;
+                }
+            } else if (!this$mbName.equals(other$mbName)) {
+                return false;
+            }
+
+            Object this$mbPassword = this.getMbPassword();
+            Object other$mbPassword = other.getMbPassword();
+            if (this$mbPassword == null) {
+                if (other$mbPassword != null) {
+                    return false;
+                }
+            } else if (!this$mbPassword.equals(other$mbPassword)) {
+                return false;
+            }
+
+            Object this$mbMobile = this.getMbMobile();
+            Object other$mbMobile = other.getMbMobile();
+            if (this$mbMobile == null) {
+                if (other$mbMobile != null) {
+                    return false;
+                }
+            } else if (!this$mbMobile.equals(other$mbMobile)) {
+                return false;
+            }
+
+            Object this$createdAt = this.getCreatedAt();
+            Object other$createdAt = other.getCreatedAt();
+            if (this$createdAt == null) {
+                if (other$createdAt != null) {
+                    return false;
+                }
+            } else if (!this$createdAt.equals(other$createdAt)) {
+                return false;
+            }
+
+            Object this$updatedAt = this.getUpdatedAt();
+            Object other$updatedAt = other.getUpdatedAt();
+            if (this$updatedAt == null) {
+                if (other$updatedAt != null) {
+                    return false;
+                }
+            } else if (!this$updatedAt.equals(other$updatedAt)) {
+                return false;
+            }
+
+            Object this$withdrawalAt = this.getWithdrawalAt();
+            Object other$withdrawalAt = other.getWithdrawalAt();
+            if (this$withdrawalAt == null) {
+                if (other$withdrawalAt != null) {
+                    return false;
+                }
+            } else if (!this$withdrawalAt.equals(other$withdrawalAt)) {
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    @Generated
+    public int hashCode() {
+        int PRIME = 59;
+        int result = 1;
+        Object $mbNo = this.getMbNo();
+        result = result * 59 + ($mbNo == null ? 43 : $mbNo.hashCode());
+        Object $mbName = this.getMbName();
+        result = result * 59 + ($mbName == null ? 43 : $mbName.hashCode());
+        Object $mbPassword = this.getMbPassword();
+        result = result * 59 + ($mbPassword == null ? 43 : $mbPassword.hashCode());
+        Object $mbMobile = this.getMbMobile();
+        result = result * 59 + ($mbMobile == null ? 43 : $mbMobile.hashCode());
+        Object $createdAt = this.getCreatedAt();
+        result = result * 59 + ($createdAt == null ? 43 : $createdAt.hashCode());
+        Object $updatedAt = this.getUpdatedAt();
+        result = result * 59 + ($updatedAt == null ? 43 : $updatedAt.hashCode());
+        Object $withdrawalAt = this.getWithdrawalAt();
+        result = result * 59 + ($withdrawalAt == null ? 43 : $withdrawalAt.hashCode());
+        return result;
+    }
+
+    @Generated
+    public String toString() {
+        Long var10000 = this.getMbNo();
+        return "MemberResponse(mbNo=" + var10000 + ", mbName=" + this.getMbName() + ", mbPassword=" + this.getMbPassword() + ", mbMobile=" + this.getMbMobile() + ", createdAt=" + String.valueOf(this.getCreatedAt()) + ", updatedAt=" + String.valueOf(this.getUpdatedAt()) + ", withdrawalAt=" + String.valueOf(this.getWithdrawalAt()) + ")";
+    }
+}
+
+```
+
+Getter, 불변객체, toString, hashCode,  toString.. 즉 Setter 제외하고 모두 만들어줌
+
+```java
+package com.nhnacademy.mvc.member.service.impl;
+
+import com.nhnacademy.mvc.member.dto.MemberRegisterRequest;
+import com.nhnacademy.mvc.member.dto.MemberResponse;
+import com.nhnacademy.mvc.member.dto.MemberUpdateRequest;
+import com.nhnacademy.mvc.member.service.MemberService;
+import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
+
+@Service
+@Transactional
+public class MemberServiceImpl implements MemberService {
+    @Override
+    public MemberResponse registerMember(MemberRegisterRequest memberRegisterRequest) {
+        return null;
+    }
+
+    @Override
+    public MemberResponse getMemberByNo(Long mbNo) {
+        return null;
+    }
+
+    @Override
+    public MemberResponse getMemberByEmail(String email) {
+        return null;
+    }
+
+    @Override
+    public void withdrawalMember(Long mbNo) {
+
+    }
+
+    @Override
+    public MemberResponse updateMember(Long mbNo, MemberUpdateRequest updateRequest) {
+        return null;
+    }
+}
+
+```
+
+- 서비스는 비즈니스 로직 문제발생시 롤백해줘야해서 @Transactional
+    - 모든 하위 메소드들에 적용을 하겠다
+- 컴포넌트 스캔을 위해 @Service
+
+```java
+    @Override
+    @Transactional(readOnly = true)
+    public MemberResponse getMemberByNo(Long mbNo) {
+        return null;
+    }
+
+```
+
+- 이렇게하면 스냅샷들을 안만들고 더티체킹을 안하기 때문에 좀 더 빠르다
+- 트랜잭션 처리ㄴㄴ 영속성 매니저안에서의 처리가 좀 달라짐
+    
+    
+
+---
+
+### 예외 만들기
+
+```java
+package com.nhnacademy.mvc.common;
+
+import lombok.Getter;
+
+public class HttpException extends RuntimeException {
+    @Getter
+    private final int statusCode;
+    
+    public HttpException(int statusCode, String message) {
+        super(message);
+        this.statusCode = statusCode;
+    }
+}
+
+```
+
+```java
+package com.nhnacademy.mvc.common;
+
+public class ConflictException extends HttpException {
+    private static final int STATUS_CODE= 409;
+
+    public ConflictException(){
+        super(STATUS_CODE, "Conflict Exception");
+    }
+    public ConflictException(String message) {
+
+        super(STATUS_CODE, message);
+    }
+}
+
+```
+
+```java
+package com.nhnacademy.mvc.common;
+
+public class NotFoundException extends HttpException {
+    private static final int STATUS_CODE = 404; 
+    
+    public NotFoundException(){
+        super(STATUS_CODE, "Not found resources");
+    }
+            
+    public NotFoundException(String message) {
+        super(STATUS_CODE, message);
+    }
+}
+
+```
+
+```java
+package com.nhnacademy.mvc.common;
+
+public class MemberNotFoundException extends NotFoundException {
+    
+    
+    public MemberNotFoundException(String identity) {
+        super("Member not found : %s ".formatted(identity));
+        
+    }
+}
+
+```
+
+이런식으로 확장해가면서 만들기
+
+```java
+
+public class MemberServiceImpl implements MemberService {
+
+    MemberRepository memberRepository;
+
+    @Override
+    public MemberResponse registerMember(MemberRegisterRequest memberRegisterRequest) {
+        //등록된 회원 - 이메일 체크
+        String email = memberRegisterRequest.getMbEmail();
+        if(memberRepository.existsMemberByMbEmail(email)){
+            throw new ConflictException("Member email : already exists".formatted(email));
+        }
+        //전화 번호 체크
+
+        //
+
+        return null;
+    }
+```
+
+---
+
+## Service Impl
+
+```java
+
+    @Override
+    public MemberResponse updateMember(Long mbNo, MemberUpdateRequest updateRequest) {
+        Member member = memberRepository.findById(mbNo).orElseThrow(
+                ()->new MemberNotFoundException(String.valueOf(mbNo))
+        );
+        
+        // 바꾸려는 번호가 DB에 존재하는지 체크하기 
+        if(Objects.nonNull(updateRequest.getMbMobile()) &&!member.getMbMobile().equals(updateRequest.getMbMobile())){
+            if(memberRepository.findMemberByMbMobile((updateRequest.getMbMobile()))){
+                throw new ConflictException("Member Mobile :%s already exists");
+            }
+        }
+        
+        member.updateMember(
+                updateRequest.getMbName(),
+                updateRequest.getMbPassword(),
+                updateRequest.getMbMobile()
+        );
+        
+        return toMemberResponse(member);
+    }
+
+```
+
+```java
+package com.nhnacademy.mvc.member.service.impl;
+
+import com.nhnacademy.mvc.common.ConflictException;
+import com.nhnacademy.mvc.common.MemberNotFoundException;
+import com.nhnacademy.mvc.member.domain.Member;
+import com.nhnacademy.mvc.member.dto.MemberRegisterRequest;
+import com.nhnacademy.mvc.member.dto.MemberResponse;
+import com.nhnacademy.mvc.member.dto.MemberUpdateRequest;
+import com.nhnacademy.mvc.member.repository.MemberRepository;
+import com.nhnacademy.mvc.member.service.MemberService;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class MemberServiceImpl implements MemberService {
+
+    MemberRepository memberRepository;
+
+    @Override
+    public MemberResponse registerMember(MemberRegisterRequest memberRegisterRequest) {
+        //등록된 회원 - 이메일 체크
+        String email = memberRegisterRequest.getMbEmail();
+        if(memberRepository.existsMemberByMbEmail(email)){
+            throw new ConflictException("Member email : already exists".formatted(email));
+        }
+        //전화 번호 체크
+        String mobile = memberRegisterRequest.getMbMobile();
+        if(memberRepository.existsMemberByMbMobile(mobile)){
+            throw new ConflictException("Member mobile : already exists".formatted(mobile));
+        }
+        //
+
+        Member member = new Member(
+                memberRegisterRequest.getMbEmail(),
+                memberRegisterRequest.getMbName(),
+                memberRegisterRequest.getMbPassword(),
+                memberRegisterRequest.getMbMobile()
+        );
+
+        memberRepository.save(member);
+
+        return toMemberResponse(member);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MemberResponse getMemberByNo(Long mbNo) {
+        Member member = memberRepository.findById(mbNo).orElseThrow(
+                ()-> new MemberNotFoundException(String.valueOf(mbNo))
+        );
+        return toMemberResponse(member);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MemberResponse getMemberByEmail(String email) {
+        Member member = memberRepository.findMemberByMbEmail(email).orElseThrow(
+                ()->new MemberNotFoundException(email)
+        );
+
+        return toMemberResponse(member);
+    }
+
+    @Override
+    public void withdrawalMember(Long mbNo) {
+        Member member = memberRepository.findById(mbNo).orElseThrow(
+                ()->new MemberNotFoundException(String.valueOf(mbNo))
+        );
+
+        member.withdrawAccount();
+    }
+
+    @Override
+    public MemberResponse updateMember(Long mbNo, MemberUpdateRequest updateRequest) {
+        Member member = memberRepository.findById(mbNo).orElseThrow(
+                ()->new MemberNotFoundException(String.valueOf(mbNo))
+        );
+
+        // 바꾸려는 번호가 DB에 존재하는지 체크하기
+        if(Objects.nonNull(updateRequest.getMbMobile()) && !member.getMbMobile().equals(updateRequest.getMbMobile())){
+            if(memberRepository.findMemberByMbMobile((updateRequest.getMbMobile()))){
+                throw new ConflictException("Member Mobile :%s already exists");
+            }
+        }
+
+        member.updateMember(
+                updateRequest.getMbName(),
+                updateRequest.getMbPassword(),
+                updateRequest.getMbMobile()
+        );
+
+        return toMemberResponse(member);
+    }
+
+    private MemberResponse toMemberResponse(Member member){
+        return new MemberResponse(
+                member.getMbNo(),
+                member.getMbName(),
+                member.getMbEmail(),
+                member.getMbPassword(),
+                member.getMbMobile(),
+                member.getCreatedAt(),
+                member.getUpdatedAt(),
+                member.getWithdrawalAt()
+        );
+
+    }
+}
+
+```
+
+- 서비스 클래스 테스트코드 할 때는 **Mocikto**
+
+```java
+    @Test
+    @DisplayName("member-등록")
+    void registerMember() {
+        //given
+
+        //when
+        
+        //then
+        
+    }
+
+```
+
+스프링에서 권장하는  테스트 코드 작성 방법
+
+- given : 데이터 준비하기
+- when : 데이터 주입 ??
+- then : Assertions
+
+```java
+
+    @Override
+    public MemberResponse registerMember(MemberRegisterRequest memberRegisterRequest) {
+        //등록된 회원 - 이메일 체크
+        String email = memberRegisterRequest.getMbEmail();
+        if(memberRepository.existsMemberByMbEmail(email)){
+            throw new ConflictException("Member email : already exists".formatted(email));
+        }
+        //전화 번호 체크
+        String mobile = memberRegisterRequest.getMbMobile();
+        if(memberRepository.existsMemberByMbMobile(mobile)){
+            throw new ConflictException("Member mobile : already exists".formatted(mobile));
+        }
+        //
+
+        Member member = new Member(
+                memberRegisterRequest.getMbEmail(),
+                memberRegisterRequest.getMbName(),
+                memberRegisterRequest.getMbPassword(),
+                memberRegisterRequest.getMbMobile()
+        );
+
+        memberRepository.save(member);
+                return toMemberResponse(member);
+}
+```
+
+이렇게하면 리턴값이 아닌 save된 값을 쓰게 되는데
+
+save하는 순간 멤버 번호, 생성 일자 등이 생성되게 되는데 
+
+```java
+ 
+    @Test
+    @DisplayName("member-등록")
+    void registerMember() {
+
+        //given
+        MemberRegisterRequest registerRequest = new MemberRegisterRequest(
+                "inho",
+                "inho@nhn.com",
+                "1234",
+                "01023231212"
+        );
+
+        MemberResponse memberResponse = new MemberResponse(
+                1L,
+                "inho",
+                "inho@nhn.com",
+                "1234",
+                "01023231212",
+                LocalDateTime.now(),
+                null,
+                null
+        );
+
+        //when
+        Mockito.when(memberRepository.existsMemberByMbEmail(anyString())).thenReturn(false);
+        Mockito.when(memberRepository.existsMemberByMbMobile(anyString())).thenReturn(false);
+        Mockito.when(memberRepository.save(Mockito.any())).thenReturn(memberResponse);
+        Mockito.doAnswer(invocationOnMock -> {
+                Member member = invocationOnMock.getArgument(0);
+            ReflectionTestUtils.setField(member, "mbNo", 1L);
+            ReflectionTestUtils.setField(member, "createdAt", LocalDateTime.now());
+            return member;
+        }).when(memberRepository.save(Mockito.any()));
+
+    }
+```
+
+하지만 테스트코드에 이렇게 쓰면 
+
+save 하는 순간 안에 멤버 객체에 그렇게 설정해줘라는 것이 doAnswer
+
+```java
+ package com.nhnacademy.mvc.member.service.impl;
+
+import ch.qos.logback.core.testUtil.MockInitialContext;
+import com.nhnacademy.mvc.common.ConflictException;
+import com.nhnacademy.mvc.member.domain.Member;
+import com.nhnacademy.mvc.member.dto.MemberRegisterRequest;
+import com.nhnacademy.mvc.member.dto.MemberResponse;
+import com.nhnacademy.mvc.member.repository.MemberRepository;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.ui.Model;
+
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+
+@ExtendWith(MockitoExtension.class)
+
+class MemberServiceImplTest {
+
+    @Mock
+    MemberRepository memberRepository;
+
+    @InjectMocks
+    MemberServiceImpl memberService;
+
+    @BeforeEach
+    void setUp() {
+    }
+
+    @Test
+    @DisplayName("member-등록")
+    void registerMember() {
+
+        //given
+        MemberRegisterRequest registerRequest = new MemberRegisterRequest(
+                "inho",
+                "inho@nhn.com",
+                "1234",
+                "01023231212"
+        );
+
+        MemberResponse memberResponse = new MemberResponse(
+                1L,
+                "inho",
+                "inho@nhn.com",
+                "1234",
+                "01023231212",
+                LocalDateTime.now(),
+                null,
+                null
+        );
+
+        //when
+        Mockito.when(memberRepository.existsMemberByMbEmail(anyString())).thenReturn(false);
+        Mockito.when(memberRepository.existsMemberByMbEmail("inho@nhn.com")).thenReturn(false);
+        Mockito.when(memberRepository.existsMemberByMbMobile("01023231212")).thenReturn(false);
+        Mockito.doAnswer(invocation -> {
+            Member member = invocation.getArgument(0);
+            ReflectionTestUtils.setField(member, "mbNo", 1L);
+            ReflectionTestUtils.setField(member, "createdAt", LocalDateTime.now());
+            return member;
+        }).when(memberRepository).save(any(Member.class));
+        MemberResponse actual = memberService.registerMember(registerRequest);
+
+        Assertions.assertNotNull(actual);
+
+        Assertions.assertAll(
+                ()->Assertions.assertEquals(1L, actual.getMbNo()),
+                ()->Assertions.assertEquals("inho", actual.getMbName()),
+                ()->Assertions.assertEquals("inho@nhn.com", actual.getMbEmail()),
+                ()->Assertions.assertEquals("1234", actual.getMbPassword()),
+                ()->Assertions.assertEquals("01023231212", actual.getMbMobile()),
+                ()->Assertions.assertNotNull(actual.getCreatedAt()),
+                ()->Assertions.assertNull(actual.getUpdatedAt()),
+                ()->Assertions.assertNull(actual.getWithdrawalAt()),
+                () -> Assertions.assertEquals("이용", actual.getStatus())
+        );
+
+        Mockito.verify(memberRepository, Mockito.times(1)).save(any(Member.class));
+
+    }
+
+    @Test
+    void getMemberByNo() {
+    }
+
+    @Test
+    void getMemberByEmail() {
+        //given
+        MemberRegisterRequest registerRequest = new MemberRegisterRequest(
+                "inho",
+                "inho@nhn.com",
+                "1234",
+                "01023231212"
+        );
+
+        MemberResponse memberResponse = new MemberResponse(
+                1L,
+                "inho",
+                "inho@nhn.com",
+                "1234",
+                "01023231212",
+                LocalDateTime.now(),
+                null,
+                null
+        );
+
+      Mockito.when(memberRepository.existsMemberByMbEmail(anyString())).thenReturn(true);
+
+      Assertions.assertThrows(ConflictException.class,()->{
+          memberService.registerMember(registerRequest);
+      });
+    }
+
+    @Test
+    void withdrawalMember() {
+    }
+
+    @Test
+    void updateMember() {
+    }
+}
+```
+
+- 스프링 컨트롤러는 메소드 단위로 리퀘스트 매핑이 가능
+
+```java
+package com.nhnacademy.mvc.controller;
+
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+@Controller
+@RequestMapping("/member")
+public class MemberController {
+
+    @GetMapping("/register") // -> /member/register
+    public String register(){
+
+        return "member/register";
+    }
+}
+
+```
+
+```java
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Member등록</title>
+</head>
+<body>
+    <form method="post" action="member/register">
+      <table border="1">
+          <tbody>
+            <tr >
+              <th>이름</th>
+                <td><input type="text" name="mbName"></td>
+            </tr>
+            <tr >
+              <th>이메일</th>
+              <td><input type="text" name="mbEmail"></td>
+            </tr>
+            <tr >
+              <th>비밀번호</th>
+              <td><input type="password" name="mbPassword"></td>
+            </tr>
+            <tr >
+              <th>연락처</th>
+              <td><input type="text" name="mbMobile"></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">
+                <button type="submit">회원가입</button>
+              </td>
+            </tr>
+          </tfoot>
+
+      </table>
+    </form>
+</body>
+</html>
+```
+
+MemberDTO의 필드와 맞춰줌 일부러 
+
+---
+
+```java
+package com.nhnacademy.mvc.member.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Value;
+import org.hibernate.validator.constraints.Length;
+
+public class MemberRegisterRequest {
+    public String getMbName() {
+        return mbName;
+    }
+
+    public String getMbEmail() {
+        return mbEmail;
+    }
+
+    public String getMbPassword() {
+        return mbPassword;
+    }
+
+    public String getMbMobile() {
+        return mbMobile;
+    }
+
+    public MemberRegisterRequest(String mbName, String mbEmail, String mbPassword, String mbMobile) {
+        this.mbName = mbName;
+        this.mbEmail = mbEmail;
+        this.mbPassword = mbPassword;
+        this.mbMobile = mbMobile;
+    }
+
+    @NotEmpty
+    String mbName;
+
+    @Email
+    String mbEmail;
+
+    @NotEmpty
+    @Length(min = 8, max = 16)
+    String mbPassword;
+
+    String mbMobile;
+
+}
+
+```
+
+이렇게 Validation 의존성 추가하면 알아서 이렇게 해주는데 검사할 때 
+
+이 어노테이션에 맞게 적용해달라고 하는게 
+
+![스크린샷 2025-02-28 오후 4.08.19.png](attachment:9f18449f-9d4e-4cf9-adf7-bb9252b014d9:스크린샷_2025-02-28_오후_4.08.19.png)
+
+@Valid어노테이션 
+
+공통 에러 처리 
+
+```java
+package com.nhnacademy.mvc.common.advice;
+
+import com.nhnacademy.mvc.common.exception.HttpException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Controller
+public class CommonAdvice {
+
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = {MethodArgumentNotValidException.class})
+    public String handleMethodArgumentNotValidException(MethodArgumentNotValidException e, Model model){
+        // Model은 Spring의 UI
+        List<String> erros = new ArrayList<>();
+
+        e.getBindingResult().getAllErrors().forEach((objectError -> {
+            if(objectError instanceof FieldError fieldError){
+                String filedName = fieldError.getField();
+                String message = fieldError.getDefaultMessage();
+                erros.add("%s : %s".formatted(filedName, message));
+
+            }
+        }));
+
+        model.addAttribute("errorMessage", String.join(", ", erros));
+        return "common/error";
+    }
+
+    @ExceptionHandler(value = {HttpException.class})
+    public ModelAndView handleHttpException(HttpException e){
+        String errorMessage = "httpStatus:%s, %s".formatted(e.getStatusCode(), e.getMessage());
+
+        ModelAndView modelAndView = new ModelAndView("common/error");
+        modelAndView.addObject("errorMessage", errorMessage);
+        modelAndView.setStatus(HttpStatusCode.valueOf(e.getStatusCode()));
+
+        return modelAndView;
+
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(value = {Throwable.class})
+    public String handleException(Throwable e, Model model){
+        model.addAttribute("errorMessgae", e.getMessage());
+        return "common/error";
+    }
+
+}
+
+```
+
+```java
+````
+    @ExceptionHandler(value = {HttpException.class})
+    public ModelAndView handleHttpException(HttpException e){
+        String errorMessage = "httpStatus:%s, %s".formatted(e.getStatusCode(), e.getMessage());
+
+        ModelAndView modelAndView = new ModelAndView("common/error");
+        modelAndView.addObject("errorMessage", errorMessage);
+        modelAndView.setStatus(HttpStatusCode.valueOf(e.getStatusCode()));
+
+        return modelAndView;
+
+    }
+```
+
+이 경우 원래대로 에러 처리하면 뷰네임만 리턴하니까 항상 200OK였는데
+
+모델앤뷰 객체를 이용해서 응답코드를 동적으로 설정할 수 있게 하기 위해서 ModelAndView 사용 
+
+```java
+ 
+import java.util.ArrayList;
+import java.util.List;
+
+@ControllerAdvice(basePackageClasses = MemberController.class) // MemberController 클래스 한정 처리하겠따 라는 뜻 
+public class CommonAdvice {
+
+```
+
+아무것도 안달면 전역으로 처리한다는 뜻 
+
+저렇게 달아주면 MemberController 클래스 한정 처리하겠다 라는 뜻 
+
+- 컨트롤러에는 비즈니스 로직 작성 ㄴㄴㄴ
+- 
+
+```java
+package com.nhnacademy.mvc.common.event;
+
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ApplicationStartEvent implements ApplicationListener<ApplicationReadyEvent> {
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        
+        
+    }
+}
+
+```
+
+- 스프링에서 이벤트 타입 잡을 때
+- 예시로 스프링 시작할 때 초기화라던지
