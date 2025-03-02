@@ -590,3 +590,64 @@ new LoginCheckInterceptor()를 통해 로그인 체크 인터셉터를 생성하
     - 결과 페이지가 사용자에게 보여집니다.
 7. **afterCompletion 실행**
     - 모든 처리가 끝난 후 최종 정리 작업을 수행합니다.
+
+
+# Spring MVC Flow (정리)
+1. Model (모델)
+Model은 애플리케이션의 데이터와 비즈니스 로직을 나타냅니다. 이 구성 요소는 데이터를 표현하고, 컨트롤러에서 필요한 로직을 처리합니다.
+
+주로 POJO (Plain Old Java Object) 형태로 구현됩니다.
+
+데이터베이스와 상호작용하거나 비즈니스 로직을 처리하는 역할을 합니다.
+
+2. View (뷰)
+View는 사용자에게 보여지는 화면을 나타냅니다. 사용자가 데이터를 확인하거나 입력하는 인터페이스 역할을 합니다.
+
+Spring MVC에서는 Thymeleaf 등 다양한 뷰 기술을 지원합니다.
+
+뷰 리졸버(View Resolver)는 컨트롤러에서 반환된 뷰 이름을 실제 뷰 파일에 매핑하는 역할을 합니다.
+
+3. Controller (컨트롤러)
+Controller는 클라이언트의 요청을 받아 해당 요청을 처리하고, 그 결과를 Model에 담아 View를 반환합니다.
+
+Spring에서 @Controller 어노테이션을 사용하여 컨트롤러를 정의합니다.
+
+@RequestMapping (또는 @GetMapping, @PostMapping) 어노테이션을 사용하여 URL과 매핑된 메서드를 정의합니다.
+
+4. DispatcherServlet (디스패처 서블릿)
+DispatcherServlet은 Spring MVC의 핵심 구성 요소로, 클라이언트의 HTTP 요청을 받아서 적절한 컨트롤러로 전달하고, 그 결과를 다시 클라이언트에게 반환하는 역할을 합니다.
+
+모든 요청을 중앙에서 처리하며, 다른 구성 요소와의 상호작용을 담당합니다.
+
+5. HandlerMapping (핸들러 매핑)
+HandlerMapping은 클라이언트의 요청 URL에 따라 어떤 컨트롤러를 실행할지를 결정하는 역할을 합니다.
+
+Spring은 `RequestMappingHandlerMapping`을 사용하여 URL과 메서드의 어노테이션을 기준으로 컨트롤러를 연결합니다.
+
+6. ViewResolver (뷰 리졸버)
+ViewResolver는 컨트롤러에서 반환된 뷰 이름을 실제 뷰 파일에 매핑하는 역할을 합니다.
+
+예를 들어, "userView"라는 뷰 이름을 받으면, `ViewResolver`는 이를 실제 JSP 파일이나 Thymeleaf 템플릿 파일로 매핑하여 렌더링합니다.
+
+7. HandlerInterceptor (핸들러 인터셉터)
+HandlerInterceptor는 요청 처리 과정에서 추가적인 작업을 하기 위해 사용됩니다. 주로 인증, 로깅, 성능 모니터링 등의 공통 관심사를 처리하는 데 유용합니다.
+
+요청이 컨트롤러에 도달하기 전에 사전 작업을 하거나, 컨트롤러 처리 후 뷰가 렌더링되기 전에 후처리를 할 수 있습니다.
+
+8. ExceptionResolver (예외 해결자)
+ExceptionResolver는 Spring MVC에서 발생하는 예외를 처리하는 역할을 합니다. 예외가 발생했을 때, 이를 처리하고 적절한 뷰로 리턴하거나, 필요한 처리를 할 수 있습니다.
+
+HandlerExceptionResolver 인터페이스를 구현하여 전역 예외 처리기를 정의할 수 있습니다.
+
+Spring MVC 요청 흐름
+클라이언트 요청: 사용자가 HTTP 요청을 보냄.
+
+DispatcherServlet: 모든 요청을 `DispatcherServlet`이 받아들임.
+
+HandlerMapping: 요청을 처리할 컨트롤러를 결정.
+
+Controller: 요청을 처리하고, 필요한 데이터를 Model에 추가.
+
+ViewResolver: 반환된 뷰 이름을 실제 뷰로 변환하여 사용자에게 반환.
+
+View: 최종적으로 사용자에게 응답을 렌더링.
