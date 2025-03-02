@@ -158,3 +158,271 @@ Collection<? extends GrantedAuthority> authorities = authentication.getAuthoriti
 - SecurityContextHolder 정리
 - RememberMeServices 실패 처리
 - AuthenticationFailureHandler 호출
+
+
+---
+
+# Spring Security 폼 로그인 이해하기
+
+## 1. 폼 로그인이란?
+
+- 사용자가 웹 페이지의 폼에 아이디와 비밀번호를 입력하여 로그인하는 방식
+- Spring Security에서 기본적으로 제공하는 인증 방식 중 하나
+
+## 2. 로그인 과정
+
+1. 사용자가 보호된 페이지 접근 시도
+2. Spring Security가 사용자를 로그인 페이지로 리다이렉트
+3. 사용자가 로그인 폼에 정보 입력 및 제출
+4. Spring Security가 입력된 정보로 인증 시도
+5. 인증 성공 시 원래 접근하려던 페이지로 리다이렉트, 실패 시 로그인 페이지로 다시 이동
+
+## 3. 주요 컴포넌트
+
+- **UsernamePasswordAuthenticationFilter**: 사용자 이름과 비밀번호를 처리하는 필터
+- **AuthenticationManager**: 실제 인증을 수행하는 인터페이스
+- **SecurityContextHolder**: 인증된 사용자 정보를 저장하는 곳
+
+## 4. 커스텀 로그인 페이지 설정
+
+1. Spring Security 설정에서 로그인 페이지 URL 지정
+2. 해당 URL에 대한 컨트롤러 및 뷰 템플릿 생성
+
+## 5. 로그인 폼 작성 시 주의사항
+
+- 폼의 action URL을 올바르게 설정 (/login 또는 커스텀 URL)
+- CSRF 토큰 포함 (Thymeleaf 등 템플릿 엔진 사용 시 자동 추가)
+- 사용자 이름 필드 이름: "username"
+- 비밀번호 필드 이름: "password"
+
+## 6. 로그인 성공/실패 처리
+
+- 성공 시: SecurityContextHolder에 인증 정보 저장, 성공 핸들러 실행
+- 실패 시: 실패 핸들러 실행, 에러 메시지와 함께 로그인 페이지로 리다이렉트
+
+## 7. Remember Me 기능
+
+- 사용자 세션이 만료된 후에도 로그인 상태 유지
+- RememberMeServices 인터페이스를 통해 구현
+
+## 8. 로그아웃
+
+- 기본적으로 /logout URL로 POST 요청 시 로그아웃 처리
+- SecurityContextHolder 초기화, 세션 무효화, 쿠키 삭제 등 수행
+
+## 9. 커스터마이징 가능한 부분
+
+- 로그인 페이지 URL
+- 로그인 처리 URL
+- 로그인 성공/실패 핸들러
+- 사용자 이름/비밀번호 파라미터 이름
+- Remember Me 설정
+- 로그아웃 URL 및 로그아웃 성공 URL
+
+---
+
+# Spring Application Event 이해하기
+
+## 1. 개요
+
+Spring Application Event는 Spring 프레임워크의 핵심 기능 중 하나로, 애플리케이션 내에서 발생하는 다양한 이벤트를 처리하는 메커니즘입니다. 이 기능을 통해 개발자는 애플리케이션의 다양한 생명주기 단계에서 특정 작업을 수행할 수 있으며, 컴포넌트 간의 느슨한 결합을 유지하면서 효과적인 통신을 할 수 있습니다.
+
+## 2. 주요 특징
+
+### 2.1 객체 간 느슨한 결합
+
+- 이벤트 발행자와 리스너 사이의 직접적인 의존성이 없음
+- 유연한 아키텍처 구현 가능
+
+### 2.2 구현 방식
+
+- ApplicationEvent와 ApplicationListener 인터페이스 사용
+- @EventListener 어노테이션을 통한 간편한 구현
+
+### 2.3 비동기 처리 지원
+
+- @Async 어노테이션을 통해 이벤트 리스너의 비동기 실행 가능
+
+## 3. 주요 이벤트 종류 및 상세 설명
+
+### 3.1 ContextRefreshedEvent
+
+- **발생 시점**: ApplicationContext가 초기화되거나 갱신될 때
+- **상세 설명**:
+    - 모든 빈이 로드되고, 후처리되며, 초기화된 후 발생
+    - 애플리케이션의 전체 구성이 완료된 시점
+- **사용 예**:
+    - 캐시 초기화
+    - 외부 리소스와의 연결 설정
+
+### 3.2 ContextStartedEvent
+
+- **발생 시점**: ApplicationContext의 start() 메서드 호출 시
+- **상세 설명**:
+    - 명시적으로 시작/중지할 수 있는 컴포넌트에 사용
+    - 일반적으로 자주 사용되지 않음
+- **사용 예**:
+    - 배치 작업 또는 예약 작업 시작
+
+### 3.3 ContextStoppedEvent
+
+- **발생 시점**: ApplicationContext의 stop() 메서드 호출 시
+- **상세 설명**:
+    - ContextStartedEvent와 쌍을 이루는 이벤트
+    - 애플리케이션을 완전히 종료하지 않고 일시 중지할 때 사용
+- **사용 예**:
+    - 실행 중인 배치 작업 일시 중지
+
+### 3.4 ContextClosedEvent
+
+- **발생 시점**: ApplicationContext의 close() 메서드 호출 시
+- **상세 설명**:
+    - 애플리케이션 종료 직전에 발생
+    - 모든 싱글톤 빈의 소멸 직전에 발생
+- **사용 예**:
+    - 데이터베이스 연결 종료
+    - 임시 파일 삭제
+
+### 3.5 RequestHandledEvent
+
+- **발생 시점**: HTTP 요청 처리 완료 후
+- **상세 설명**:
+    - Spring MVC 애플리케이션에서만 발생
+    - 요청 처리에 대한 상세 정보 포함
+- **사용 예**:
+    - 요청 처리 시간 로깅
+    - 요청 통계 수집
+
+### 3.6 ApplicationEnvironmentPreparedEvent
+
+- **발생 시점**: 애플리케이션 환경이 준비되었을 때
+- **상세 설명**:
+    - 애플리케이션 컨텍스트 생성 전, 환경 변수 설정 후 발생
+    - 프로파일 활성화, 프로퍼티 소스 추가 등의 작업 후 발생
+- **사용 예**:
+    - 추가 프로퍼티 소스 등록
+    - 환경 변수 기반 동적 설정
+
+### 3.7 ApplicationPreparedEvent
+
+- **발생 시점**: ApplicationContext 생성 후, refresh 전
+- **상세 설명**:
+    - 빈 정의가 로드된 후, 빈 인스턴스화 전에 발생
+- **사용 예**:
+    - 빈 정의 수정 또는 추가
+    - 컨텍스트 refresh 전 마지막 설정 변경
+
+### 3.8 ApplicationStartedEvent
+
+- **발생 시점**: ApplicationContext refresh 후, 애플리케이션 및 커맨드 라인 러너 실행 전
+- **상세 설명**:
+    - 모든 빈이 로드되고 애플리케이션이 거의 시작된 시점
+- **사용 예**:
+    - 애플리케이션 시작 시간 측정
+    - 초기 상태 로깅
+
+### 3.9 ApplicationReadyEvent
+
+- **발생 시점**: 애플리케이션 및 커맨드 라인 러너 실행 후
+- **상세 설명**:
+    - 애플리케이션이 완전히 시작되고 요청을 처리할 준비가 된 시점
+- **사용 예**:
+    - 애플리케이션 시작 완료 알림 전송
+    - 지연 초기화가 필요한 리소스 로드
+
+## 4. 이벤트 리스너 구현 방법
+
+### 4.1 개별 클래스로 구현
+
+```java
+@Component
+public class MyContextRefreshedListener implements ApplicationListener<ContextRefreshedEvent> {
+@Override
+public void onApplicationEvent(ContextRefreshedEvent event) {
+			// 이벤트 처리 로직
+	}
+}
+```
+
+### 4.2 @EventListner 어노테이션 사용
+
+```java
+ @EventListener
+public void handleApplicationReady(ApplicationReadyEvent event) {
+    // 이벤트 처리 로직
+}
+
+```
+
+## 5. 이벤트 발행 방법
+
+```java
+@Autowired
+private ApplicationEventPublisher eventPublisher;
+
+public void doSomething() {
+// 비즈니스 로직
+eventPublisher.publishEvent(new CustomEvent(this, "Something happened"));
+}
+```
+
+## 6. 이벤트 사용의 장점
+
+1. **모듈 간 결합도 감소**: 직접적인 의존성 없이 컴포넌트 간 통신 가능
+2. **확장성 향상**: 새로운 기능 추가 시 기존 코드 수정 없이 리스너 추가 가능
+3. **관심사의 분리**: 핵심 비즈니스 로직과 부가 기능을 분리하여 관리 용이
+4. **비동기 처리**: @Async 어노테이션을 통해 비동기적 이벤트 처리 가능
+
+## 7. 주의사항
+
+- **과도한 사용 주의**: 너무 많은 이벤트는 코드 복잡성 증가 및 디버깅 어려움 초래
+- **성능 고려**: 동기/비동기 처리에 따른 성능 영향 고려 필요
+- **순서 의존성**: 여러 리스너가 같은 이벤트를 처리할 때 실행 순서 주의
+- **예외 처리**: 이벤트 리스너에서 발생한 예외의 적절한 처리 필요
+
+## 8. 결론
+
+Spring Application Event는 강력하고 유연한 기능으로, 적절히 사용하면 애플리케이션의 구조를 개선하고 확장성을 높일 수 있습니다. 하지만 과도한 사용은 피하고, 애플리케이션의 요구사항과 구조를 고려하여 적절히 활용해야 합니다.
+
+**개별 class로 처리할 때**
+
+```java
+@Component
+@RequiredArgsConstructor
+public class ApplicationStartListener implements ApplicationListener<ApplicationReadyEvent> {
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        //...
+    }
+}
+```
+
+**여러개의 이벤트를 한 클래스 내에서 처리할 때**
+
+```java
+@Component
+public class ApplicationStartListener {
+
+    @EventListener
+    public void onApplicationReady(ApplicationReadyEvent event) {
+        // 애플리케이션이 완전히 시작된 후 수행할 작업
+        // ...
+    }
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void onContextRefreshedEvent(ContextRefreshedEvent event) {
+       //...
+    }
+
+    @EventListener(ContextStartedEvent.class)
+    public void onContextStartedEvent(ContextStartedEvent event) {
+        //...
+    }
+
+    @EventListener(ContextStoppedEvent.class)
+    public void onContextStoppedEvent(ContextStoppedEvent event) {
+       //...
+    }
+
+}`
+```
